@@ -2,8 +2,10 @@ package user
 
 import (
 	"errors"
+	"rest-fiber/pkg"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type UserHandler interface {
@@ -30,11 +32,15 @@ func (h *userHandler) GetAllUsers(c *fiber.Ctx) error {
 
 func (h *userHandler) GetUserByID(c *fiber.Ctx) error {
 	id := c.Params("id")
+
+	if _, err := uuid.Parse(id); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid user id")
+	}
 	ctx := c.UserContext()
 
 	userResponse, err := h.userService.FindUserByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, errors.New("Not Found")) {
+		if errors.Is(err, pkg.ErrNotFound) {
 			return fiber.NewError(fiber.StatusNotFound, "User Not Found")
 		}
 		return err
