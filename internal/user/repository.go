@@ -29,13 +29,13 @@ func (r *userRepository) FindAll(ctx context.Context) ([]User, error) {
 
 func (r *userRepository) FindByID(ctx context.Context, id string) (User, error) {
 	var user User
-	err := r.db.WithContext(ctx).Scopes(WhereID(id), SelectUserPublicFields).Take(&user).Error
+	err := r.db.WithContext(ctx).Scopes(WhereID(id), SelectPublicFields).Take(&user).Error
 	return user, err
 }
 
 func (r *userRepository) FindByEmail(ctx context.Context, email string) (User, error) {
 	var user User
-	err := r.db.WithContext(ctx).Scopes(WhereEmail(email),SelectUserPublicFields).Take(&user).Error
+	err := r.db.WithContext(ctx).Scopes(WhereEmail(email), SelectPublicFields).Take(&user).Error
 	return user, err
 }
 

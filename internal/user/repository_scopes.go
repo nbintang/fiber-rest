@@ -16,6 +16,6 @@ func WhereID(id string) ScopeReturn {
 	}
 }
 
-func SelectUserPublicFields(db *gorm.DB) *gorm.DB {
+func SelectPublicFields(db *gorm.DB) *gorm.DB {
 	return db.Select("id", "name", "email", "created_at")
 }
