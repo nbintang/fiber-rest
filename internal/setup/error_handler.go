@@ -1,13 +1,12 @@
-package pkg
+package setup
 
 import (
-	"errors"
 	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
- 
+
 func DefaultErrorHandler(c *fiber.Ctx, err error) error {
 	statusCode := fiber.StatusInternalServerError
 	msg := "Internal Server Error"

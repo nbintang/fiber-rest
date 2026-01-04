@@ -1,6 +1,10 @@
 package user
 
-import "go.uber.org/fx"
+import (
+	"rest-fiber/internal/setup"
+
+	"go.uber.org/fx"
+)
 
 var Module = fx.Module(
 	"User",
@@ -8,6 +12,6 @@ var Module = fx.Module(
 		NewUserRepository,
 		NewUserService,
 		NewUserHandler,
+		setup.RouteProvider[UserHandler](NewUserRoute),
 	),
-	fx.Invoke(RegisterUserRoutes),
 )

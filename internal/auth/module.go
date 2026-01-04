@@ -1,12 +1,16 @@
 package auth
 
-import "go.uber.org/fx"
+import (
+	"rest-fiber/internal/setup"
+
+	"go.uber.org/fx"
+)
 
 var Module = fx.Module(
 	"Auth",
 	fx.Provide(
 		NewAuthService,
 		NewAuthHandler,
+		setup.RouteProvider[AuthHandler](NewAuthRoute),
 	),
-	fx.Invoke(RegisterAuthRoutes),
 )

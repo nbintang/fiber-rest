@@ -6,10 +6,6 @@ import (
 	"rest-fiber/pkg"
 )
 
-type AuthService interface {
-	Register(ctx context.Context, dto *RegisterRequestDTO) error
-}
-
 type authService struct {
 	userRepo user.UserRepository
 }

@@ -3,16 +3,18 @@ package main
 import (
 	"context"
 	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"rest-fiber/config"
 	"rest-fiber/internal/category"
+	"rest-fiber/internal/infra"
 	"rest-fiber/internal/post"
 	"rest-fiber/internal/user"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func InitMigrate(ctx context.Context) error {
-	logConfig := config.NewDBLogger()
+	logConfig := infra.NewDBLogger()
 
 	env, err := config.NewEnv()
 	if err != nil {

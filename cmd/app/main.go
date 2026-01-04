@@ -2,9 +2,8 @@ package main
 
 import (
 	"rest-fiber/config"
-	"rest-fiber/internal"
-	"rest-fiber/internal/auth"
-	"rest-fiber/internal/user"
+	app "rest-fiber/internal" 
+	"rest-fiber/internal/infra" 
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -17,8 +16,7 @@ func main() {
 	}
 	fx.New(
 		config.Module,
-		internal.Module,
-		user.Module,
-		auth.Module,
+		infra.Module,
+		app.Module,
 	).Run()
 }

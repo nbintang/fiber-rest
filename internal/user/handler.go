@@ -8,20 +8,15 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserHandler interface {
-	GetAllUsers(c *fiber.Ctx) error
-	GetUserByID(c *fiber.Ctx) error
-}
-
-type userHandler struct {
+type userHandlerImpl struct {
 	userService UserService
 }
 
 func NewUserHandler(userService UserService) UserHandler {
-	return &userHandler{userService}
+	return &userHandlerImpl{userService}
 }
 
-func (h *userHandler) GetAllUsers(c *fiber.Ctx) error {
+func (h *userHandlerImpl) GetAllUsers(c *fiber.Ctx) error {
 	ctx := c.UserContext()
 	userResponses, err := h.userService.FindAllUsers(ctx)
 	if err != nil {
@@ -30,7 +25,7 @@ func (h *userHandler) GetAllUsers(c *fiber.Ctx) error {
 	return c.JSON(userResponses)
 }
 
-func (h *userHandler) GetUserByID(c *fiber.Ctx) error {
+func (h *userHandlerImpl) GetUserByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	if _, err := uuid.Parse(id); err != nil {

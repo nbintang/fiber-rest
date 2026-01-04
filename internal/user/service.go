@@ -3,25 +3,23 @@ package user
 import (
 	"context"
 	"errors"
+	"rest-fiber/internal/infra"
 	"rest-fiber/pkg"
 
 	"gorm.io/gorm"
 )
 
-type UserService interface {
-	FindAllUsers(ctx context.Context) ([]UserResponseDTO, error)
-	FindUserByID(ctx context.Context, id string) (*UserResponseDTO, error)
-}
 
-type userService struct {
+type userServiceImpl struct {
 	userRepo UserRepository
+	logger *infra.AppLogger
 }
 
-func NewUserService(userRepo UserRepository) UserService {
-	return &userService{userRepo}
+func NewUserService(userRepo UserRepository, logger *infra.AppLogger) UserService {
+	return &userServiceImpl{userRepo, logger}
 }
 
-func (s *userService) FindAllUsers(ctx context.Context) ([]UserResponseDTO, error) {
+func (s *userServiceImpl) FindAllUsers(ctx context.Context) ([]UserResponseDTO, error) {
 	users, err := s.userRepo.FindAll(ctx)
 	if err != nil {
 		return nil, err
@@ -40,7 +38,7 @@ func (s *userService) FindAllUsers(ctx context.Context) ([]UserResponseDTO, erro
 	return userResponses, nil
 }
 
-func (s *userService) FindUserByID(ctx context.Context, id string) (*UserResponseDTO, error) {
+func (s *userServiceImpl) FindUserByID(ctx context.Context, id string) (*UserResponseDTO, error) {
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -48,6 +46,7 @@ func (s *userService) FindUserByID(ctx context.Context, id string) (*UserRespons
 		}
 		return nil, err
 	}
+	
 	return &UserResponseDTO{
 		ID:        user.ID,
 		Name:      user.Name,
