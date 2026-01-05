@@ -1,6 +1,7 @@
 package user
 
 import (
+	"rest-fiber/internal/contract"
 	"rest-fiber/internal/setup"
 
 	"go.uber.org/fx"
@@ -12,6 +13,9 @@ var Module = fx.Module(
 		NewUserRepository,
 		NewUserService,
 		NewUserHandler,
-		setup.ProtectedRouteProvider[UserHandler](NewUserRoute),
+		setup.RouteProvider[UserHandler, contract.ProtectedRoute](
+			NewUserRoute,
+			setup.RouteProtected,
+		),
 	),
 )

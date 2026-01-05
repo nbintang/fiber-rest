@@ -17,5 +17,5 @@ func WhereID(id string) ScopeReturn {
 }
 
 func SelectPublicFields(db *gorm.DB) *gorm.DB {
-	return db.Select("id", "name", "avatar_url", "email", "created_at")
+	return db.Select("id", "name", "avatar_url", "password", "email", "is_email_verified")
 }

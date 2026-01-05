@@ -49,6 +49,13 @@ func (r *userRepositoryImpl) FindExistsByEmail(ctx context.Context, email string
 	return count > 0, err
 }
 
+func (r *userRepositoryImpl) Update(ctx context.Context, id string, dto *User) error {
+	if err := r.db.WithContext(ctx).Scopes(WhereID(id)).Updates(&dto).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (r *userRepositoryImpl) Create(ctx context.Context, dto *User) error {
 	dto.Role = Member
 	err := r.db.WithContext(ctx).Create(&dto).Error

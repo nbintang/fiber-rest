@@ -8,4 +8,5 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*User, error)
 	FindExistsByEmail(ctx context.Context, email string) (bool, error)
 	Create(ctx context.Context, dto *User) error
+	Update(ctx context.Context, id string, dto *User) error
 }

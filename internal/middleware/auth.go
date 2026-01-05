@@ -7,13 +7,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func AuthJWT(c *fiber.Ctx) error {
-	env, err := config.GetEnvs()
-	if err != nil {
-		return err
-	}
+func AuthAccess(env config.Env) fiber.Handler {
 	return jwtware.New(jwtware.Config{
-		SigningKey: jwtware.SigningKey{Key: []byte(env.JWTSecret)},
+		SigningKey: jwtware.SigningKey{Key: []byte(env.JWTAccessSecret)},
 		ContextKey: "jwt",
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
@@ -22,5 +18,5 @@ func AuthJWT(c *fiber.Ctx) error {
 				"error":       err.Error(),
 			})
 		},
-	})(c)
+	})
 }

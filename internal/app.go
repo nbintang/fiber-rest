@@ -12,7 +12,7 @@ import (
 )
 
 type App struct {
-	Fiber          *fiber.App
+	*fiber.App
 	PublicRoute    fiber.Router
 	ProtectedRoute fiber.Router
 	Env            config.Env
@@ -24,15 +24,16 @@ func NewApp(env config.Env) *App {
 	})
 
 	api := f.Group("/api")
-
 	api.Get("/", func(c *fiber.Ctx) error {
 		return c.Status(200).SendString("Wellcome to API")
 	})
 
-	protected := api.Group("/protected", middleware.AuthJWT)
+	protected := api.Group("/protected");
+
+	protected.Use(middleware.AuthAccess(env), middleware.CurrentAuthUser())
 
 	return &App{
-		Fiber:          f,
+		App:            f,
 		PublicRoute:    api,
 		ProtectedRoute: protected,
 		Env:            env,
@@ -49,14 +50,14 @@ func (a *App) Run(lc fx.Lifecycle) {
 		OnStart: func(ctx context.Context) error {
 			go func() {
 				log.Printf("Fiber listening on %s", addr)
-				if err := a.Fiber.Listen(addr); err != nil {
+				if err := a.Listen(addr); err != nil {
 					log.Printf("Fiber stopped: %s", err)
 				}
 			}()
 			return nil
 		},
 		OnStop: func(ctx context.Context) error {
-			return a.Fiber.Shutdown()
+			return a.Shutdown()
 		},
 	})
 }

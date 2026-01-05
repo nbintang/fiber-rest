@@ -13,18 +13,18 @@ type GenerateTokenParams struct {
 }
 
 type TokenService interface {
-	GenerateToken(params *GenerateTokenParams, envStr string) (string, error)
+	GenerateToken(params *GenerateTokenParams, envStr string, duration time.Duration) (string, error)
+	VerifyToken(tokenStr string, envStr string) (*jwt.MapClaims, error)
 }
 
-type tokenServiceImpl struct {
-}
+type tokenServiceImpl struct{}
 
 func NewTokenService(env config.Env) TokenService {
 	return &tokenServiceImpl{}
 }
 
-func (s *tokenServiceImpl) GenerateToken(params *GenerateTokenParams, envStr string) (string, error) {
-	expirationTime := time.Now().Add(1 * time.Hour)
+func (s *tokenServiceImpl) GenerateToken(params *GenerateTokenParams, envStr string, duration time.Duration) (string, error) {
+	expirationTime := time.Now().Add(duration)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":    params.ID,
 		"email": params.Email,
@@ -32,4 +32,26 @@ func (s *tokenServiceImpl) GenerateToken(params *GenerateTokenParams, envStr str
 		"iat":   time.Now().Unix(),
 	})
 	return token.SignedString([]byte(envStr))
+}
+
+func (s *tokenServiceImpl) VerifyToken(tokenStr string, envStr string) (*jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrSignatureInvalid
+		}
+		return []byte(envStr), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if !token.Valid {
+		return nil, jwt.ErrTokenInvalidClaims
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, jwt.ErrTokenInvalidClaims
+	}
+	return &claims, nil
 }

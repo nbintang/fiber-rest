@@ -7,7 +7,7 @@ type RegisterRequestDTO struct {
 	Password  string `json:"password" validate:"required,min=6"`
 }
 
-type VerifyRequestDTO struct {
-	Email string `json:"email" validate:"required,email"`
-	OTP   string `json:"otp" validate:"min=6,max=6"`
+type LoginRequestDTO struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }

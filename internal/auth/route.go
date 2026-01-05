@@ -16,4 +16,6 @@ func NewAuthRoute(h AuthHandler) contract.Route {
 func (r *authRouteImpl) RegisterRoute(api fiber.Router) {
 	auth := api.Group("/auth")
 	auth.Post("/register", r.h.Register)
+	auth.Post("/verify", r.h.VerifyEmail) 
+	auth.Post("/login", r.h.Login)
 }

@@ -1,25 +1,20 @@
 package setup
 
-import (
-	"rest-fiber/internal/contract"
-
-	"go.uber.org/fx"
-)
+import "go.uber.org/fx"
 
 type RouteConstructor[T any, R any] func(T) R
 
-func RouteProvider[T any, R contract.Route](routeConstructor RouteConstructor[T, R]) any {
-	return fx.Annotate(
-		routeConstructor,
-		fx.As(new(R)),
-		fx.ResultTags(`group:"routes"`),
-	)
-}
+type AccessType string
 
-func ProtectedRouteProvider[T any, R contract.ProtectedRoute](routeConstructor RouteConstructor[T, R]) any {
+const (
+	RouteProtected AccessType = `group:"protected_routes"`
+	RoutePublic    AccessType = `group:"public_routes"`
+)
+
+func RouteProvider[T any, R any](routeConstructor RouteConstructor[T, R], acc AccessType) any {
 	return fx.Annotate(
 		routeConstructor,
 		fx.As(new(R)),
-		fx.ResultTags(`group:"protected_routes"`),
+		fx.ResultTags(string(acc)),
 	)
 }

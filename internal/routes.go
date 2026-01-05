@@ -9,7 +9,7 @@ import (
 type RoutesIn struct {
 	fx.In
 	App       *App
-	Routes    []contract.Route          `group:"routes"`
+	Routes    []contract.Route          `group:"public_routes"`
 	Protected []contract.ProtectedRoute `group:"protected_routes"`
 }
 

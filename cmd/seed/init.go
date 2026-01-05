@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"math/rand" 
+	"math/rand"
 	"rest-fiber/internal/category"
 	"rest-fiber/internal/post"
 	"rest-fiber/internal/user"
+	"rest-fiber/pkg"
 	"strings"
 
 	"github.com/go-faker/faker/v4"
@@ -18,37 +19,40 @@ type Options struct {
 	Count int
 }
 
-func CreateSeeds(db *gorm.DB, opt Options) { 
+func CreateSeeds(db *gorm.DB, opt Options) {
 	domain := "example.com"
 
 	if err := resetTables(db); err != nil {
 		panic(err)
 	}
- 
+
 	categoryPool := []string{
 		"Technology", "Programming", "Lifestyle", "Backend", "DevOps",
 		"Database", "Security", "Testing",
 	}
-
+	hashed, err := pkg.HashPassword("Password123")
+	if err != nil {
+		return
+	}
 	for i := 0; i < opt.Count; i++ {
 		name := faker.Name()
 
 		userSeed := user.User{
-			Name:      name,
-			Email:     realisticEmail(name, i, domain),  
-			AvatarURL: realisticAvatar(name),           
-			Password:  "Password123",                   
-			Role:      evenOddRole(i),
+			Name:            name,
+			Email:           realisticEmail(name, i, domain),
+			AvatarURL:       realisticAvatar(name),
+			Password:        hashed,
+			Role:            evenOddRole(i),
 			IsEmailVerified: rand.Intn(2) == 1,
 		}
- 
+
 		for p := 0; p < 3; p++ {
 			catName := categoryPool[rand.Intn(len(categoryPool))]
 
 			userSeed.Posts = append(userSeed.Posts, post.Post{
 				Title:    realisticPostTitle(),
 				Body:     realisticPostBody(),
-				ImageURL: faker.URL(),  
+				ImageURL: faker.URL(),
 				Status:   evenOddStatus(i + p),
 				Category: category.Category{Name: catName},
 			})
@@ -77,7 +81,6 @@ func evenOddStatus(i int) post.Status {
 	return post.Draft
 }
 
- 
 func realisticEmail(fullName string, i int, domain string) string {
 	// domain tanpa "@"
 	domain = strings.TrimPrefix(domain, "@")
@@ -114,7 +117,6 @@ func realisticPostBody() string {
 	// kalau faker versi kamu tidak punya Paragraph, ganti jadi faker.Sentence() beberapa kali
 	return faker.Paragraph()
 }
-
 
 func resetTables(db *gorm.DB) error {
 	return db.Transaction(func(tx *gorm.DB) error {
