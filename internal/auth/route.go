@@ -3,10 +3,9 @@ package auth
 import (
 	"rest-fiber/config"
 	"rest-fiber/internal/contract"
-	"time"
+	"rest-fiber/internal/middleware"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"go.uber.org/fx"
 )
 
@@ -27,25 +26,8 @@ func NewAuthRoute(p AuthRouteParams) contract.Route {
 func (r *authRouteImpl) RegisterRoute(api fiber.Router) {
 	auth := api.Group("/auth")
 
-	authLimiter := limiter.New(limiter.Config{
-		Max:        5,
-		Expiration: 1 * time.Minute,
-
-		KeyGenerator: func(c *fiber.Ctx) string {
-			return c.IP()
-		},
-
-		// pastiin request tetap dihitung walau status code error
-		SkipFailedRequests:     false,
-		SkipSuccessfulRequests: false,
-
-		LimitReached: func(c *fiber.Ctx) error {
-			return fiber.NewError(fiber.StatusBadRequest, "Too many requests")
-		},
-	})
-
-	auth.Post("/register", authLimiter, r.h.Register)
-	auth.Post("/verify", authLimiter, r.h.VerifyEmail)
-	auth.Post("/login", authLimiter, r.h.Login)
+	auth.Post("/register", middleware.RateLimiter(middleware.RateLimiterParams{MaxLimit: 5}), r.h.Register)
+	auth.Post("/verify", middleware.RateLimiter(middleware.RateLimiterParams{MaxLimit: 5}), r.h.VerifyEmail)
+	auth.Post("/login", middleware.RateLimiter(middleware.RateLimiterParams{MaxLimit: 5}), r.h.Login)
 	auth.Post("/refresh-token", r.h.RefreshToken)
 }

@@ -12,10 +12,11 @@ type authHandler struct {
 	authService AuthService
 	validate    infra.Validator
 	env         config.Env
+	logger   *infra.AppLogger
 }
 
-func NewAuthHandler(authService AuthService, validate infra.Validator, env config.Env) AuthHandler {
-	return &authHandler{authService, validate, env}
+func NewAuthHandler(authService AuthService, validate infra.Validator, env config.Env, 	logger   *infra.AppLogger) AuthHandler {
+	return &authHandler{authService, validate, env,logger}
 }
 
 func (h *authHandler) Register(c *fiber.Ctx) error {

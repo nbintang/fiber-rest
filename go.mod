@@ -20,6 +20,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/gofiber/contrib/jwt v1.1.2 // indirect
 	github.com/gofiber/fiber/v2 v2.52.10 // indirect
+	github.com/gofiber/storage v1.3.3 // indirect
 	github.com/gofiber/storage/redis v1.3.4 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect

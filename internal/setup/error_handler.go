@@ -1,8 +1,6 @@
 package setup
 
 import (
-	"time"
-
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
@@ -18,21 +16,12 @@ func DefaultErrorHandler(c *fiber.Ctx, err error) error {
 				"tag":   fe.Tag(),
 			})
 		}
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message":     "validation error",
-			"status_code": fiber.StatusBadRequest,
-			"timestamp":   time.Now().Unix(),
-			"errors":      out,
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(NewHttpResponse(statusCode, msg, out))
 	}
 
 	if e, ok := err.(*fiber.Error); ok {
 		statusCode = e.Code
 		msg = e.Message
 	}
-	return c.Status(statusCode).JSON(fiber.Map{
-		"error":       msg,
-		"status_code": statusCode,
-		"timestamp":   time.Now().Unix(),
-	})
+	return c.Status(statusCode).JSON(NewHttpResponse(statusCode, msg, nil))
 }

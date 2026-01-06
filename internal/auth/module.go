@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"rest-fiber/internal/contract"
+	"rest-fiber/internal/contract" 
 	"rest-fiber/internal/setup"
 
 	"go.uber.org/fx"
