@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"rest-fiber/internal/category"
+	"rest-fiber/internal/enums"
 	"rest-fiber/internal/post"
 	"rest-fiber/internal/user"
 	"rest-fiber/pkg"
@@ -19,7 +20,7 @@ type Options struct {
 	Count int
 }
 
-func CreateSeeds(db *gorm.DB, opt Options) {
+func InitSeeds(db *gorm.DB, opt Options) {
 	domain := "example.com"
 
 	if err := resetTables(db); err != nil {
@@ -70,15 +71,15 @@ func CreateSeeds(db *gorm.DB, opt Options) {
 
 func evenOddRole(i int) user.Role {
 	if i%2 == 0 {
-		return user.Member
+		return user.Role(enums.Member)
 	}
-	return user.Admin
+	return user.Role(enums.Admin)
 }
 func evenOddStatus(i int) post.Status {
 	if i%2 == 0 {
-		return post.Published
+		return post.Status(enums.Published)
 	}
-	return post.Draft
+	return post.Status(enums.Draft)
 }
 
 func realisticEmail(fullName string, i int, domain string) string {

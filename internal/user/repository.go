@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"rest-fiber/internal/enums"
 
 	"gorm.io/gorm"
 )
@@ -57,7 +58,7 @@ func (r *userRepositoryImpl) Update(ctx context.Context, id string, dto *User) e
 }
 
 func (r *userRepositoryImpl) Create(ctx context.Context, dto *User) error {
-	dto.Role = Member
+	dto.Role = Role(enums.Member)
 	err := r.db.WithContext(ctx).Create(&dto).Error
 	return err
 }

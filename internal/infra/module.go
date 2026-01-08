@@ -5,13 +5,17 @@ import "go.uber.org/fx"
 var Module = fx.Module(
 	"infra",
 	fx.Provide(
-		NewDatabase,
-		NewLogger,
-		NewDBLogger,
-		NewValidator,
+		NewDatabaseService,
+		NewRedisService,
+	),
+	fx.Provide(
+		NewValidatorService,
 		NewTokenService,
 		NewEmailService,
-		NewRedisService,
+	),
+	fx.Provide(
+		NewLogger,
+		NewDBLogger,
 	),
 	fx.Invoke(
 		RegisterRedisLifecycle,

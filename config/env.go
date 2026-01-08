@@ -28,6 +28,7 @@ type Env struct {
 	RedisHost             string `mapstructure:"REDIS_HOST" validate:"required"`
 	RedisPort             string `mapstructure:"REDIS_PORT" validate:"required"`
 	RedisPassword         string `mapstructure:"REDIS_PASSWORD" validate:"omitempty"`
+	TargetURL             string `mapstructure:"TARGET_URL" validate:"required"`
 }
 
 func GetEnvs() (Env, error) {

@@ -1,6 +1,7 @@
 package user
 
 import (
+	"rest-fiber/internal/infra"
 	"rest-fiber/internal/setup"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,10 +10,11 @@ import (
 
 type userHandlerImpl struct {
 	userService UserService
+	logger      *infra.AppLogger
 }
 
-func NewUserHandler(userService UserService) UserHandler {
-	return &userHandlerImpl{userService}
+func NewUserHandler(userService UserService, logger *infra.AppLogger) UserHandler {
+	return &userHandlerImpl{userService, logger}
 }
 
 func (h *userHandlerImpl) GetAllUsers(c *fiber.Ctx) error {
@@ -21,7 +23,7 @@ func (h *userHandlerImpl) GetAllUsers(c *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	return c.Status(fiber.StatusOK).JSON(setup.NewHttpResponse(fiber.StatusOK, userResponses, "Success"))
+	return c.Status(fiber.StatusOK).JSON(setup.NewHttpResponse(fiber.StatusOK, "Success", userResponses))
 }
 
 func (h *userHandlerImpl) GetUserByID(c *fiber.Ctx) error {
@@ -37,5 +39,19 @@ func (h *userHandlerImpl) GetUserByID(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(setup.NewHttpResponse(fiber.StatusOK, userResponse, "Success"))
+	return c.Status(fiber.StatusOK).JSON(setup.NewHttpResponse(fiber.StatusOK, "Success", userResponse))
+}
+
+func (h *userHandlerImpl) GetCurrentUser(c *fiber.Ctx) error {
+	userId := c.Locals("userID").(string)
+	if userId == "" {
+		c.Status(401).JSON(setup.NewHttpResponse(fiber.StatusUnauthorized, "Unauthorized", nil))
+	}
+	ctx := c.UserContext()
+	h.logger.Infof("user Id :%s", userId)
+	userResponse, err := h.userService.FindUserByID(ctx, userId)
+	if err != nil {
+		return fiber.NewError(fiber.StatusNotFound, err.Error())
+	}
+	return c.Status(fiber.StatusOK).JSON(setup.NewHttpResponse(fiber.StatusOK, "Success", userResponse))
 }

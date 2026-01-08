@@ -2,9 +2,10 @@ package infra
 
 import (
 	"fmt"
+	"rest-fiber/config"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"rest-fiber/config"
 )
 
 func GetDatabaseStandalone(env config.Env, logger *DBLogger) (*gorm.DB, error) {
@@ -27,6 +28,6 @@ func GetDatabaseStandalone(env config.Env, logger *DBLogger) (*gorm.DB, error) {
 		Logger: logger,
 	})
 }
-func NewDatabase(env config.Env, logger *DBLogger) (*gorm.DB, error) {
+func NewDatabaseService(env config.Env, logger *DBLogger) (*gorm.DB, error) {
 	return GetDatabaseStandalone(env, logger)
 }

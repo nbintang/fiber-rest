@@ -28,7 +28,7 @@ func main() {
 		fmt.Println("Error:", err)
 		return
 	}
-	CreateSeeds(db, Options{
+	InitSeeds(db, Options{
 		Count: count,
 	})
 }

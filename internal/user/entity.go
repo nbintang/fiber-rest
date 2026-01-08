@@ -3,18 +3,14 @@ package user
 import (
 	"database/sql/driver"
 	"fmt"
+	"rest-fiber/internal/enums"
 	"rest-fiber/internal/post"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type Role string
-
-const (
-	Admin  Role = "ADMIN"
-	Member Role = "MEMBER"
-)
+type Role enums.EUserRoleType
 
 type User struct {
 	ID              uuid.UUID   `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
@@ -49,19 +45,6 @@ func (r *Role) Scan(value any) error {
 	}
 	return nil
 }
-
-func (r Role) IsValid() bool {
-	return r == Admin || r == Member
-}
-
-func (r Role) IsAdmin() bool {
-	return r == Admin
-}
-
-func (r Role) IsMember() bool {
-	return r == Member
-}
-
 func (r Role) Value() (driver.Value, error) {
 	return string(r), nil
 }

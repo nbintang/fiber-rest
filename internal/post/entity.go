@@ -4,21 +4,17 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"rest-fiber/internal/category"
+	"rest-fiber/internal/enums"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type Status string
-
-const (
-	Published Status = "PUBLISHED"
-	Draft     Status = "DRAFT"
-)
+type Status enums.EPostStatusType
 
 type Post struct {
 	ID         uuid.UUID         `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	ImageURL      string            `gorm:"type:text;null;default:null;column:image_url"`
+	ImageURL   string            `gorm:"type:text;null;default:null;column:image_url"`
 	Title      string            `gorm:"type:varchar(255);not null;column:title"`
 	Body       string            `gorm:"type:text;not null;column:body"`
 	UserID     string            `gorm:"type:char(36);not null;column:user_id"`
@@ -35,7 +31,7 @@ func (p *Post) TableName() string {
 }
 
 func (p *Post) IsPublished() bool {
-	return p.Status == Published
+	return p.Status == Status(enums.Published)
 }
 
 func (r *Status) Scan(value any) error {

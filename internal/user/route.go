@@ -16,6 +16,7 @@ func NewUserRoute(h UserHandler) contract.ProtectedRoute {
 func (r *userRouteImpl) RegisterProtectedRoute(api fiber.Router) {
 	users := api.Group("/users")
 	users.Get("/", r.h.GetAllUsers)
+	users.Get("/me", r.h.GetCurrentUser)
 	users.Get("/:id", r.h.GetUserByID)
 } 
 

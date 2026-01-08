@@ -13,5 +13,13 @@ func HashPassword(password string) (string, error) {
 }
 
 func ComparePassword(password string, hashed string) error {
-    return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password))
+	return bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password))
+}
+
+func HashToken(token string) (string, error) {
+	hashedToken, err := bcrypt.GenerateFromPassword([]byte(token), 12)
+	if err != nil {
+		return "", err
+	}
+	return string(hashedToken), nil
 }

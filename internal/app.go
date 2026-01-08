@@ -1,12 +1,12 @@
 package internal
 
-import ( 
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"rest-fiber/config"
 	"rest-fiber/internal/infra"
 	"rest-fiber/internal/middleware"
 	"rest-fiber/internal/setup"
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors" 
 )
 
 type App struct {
@@ -17,7 +17,7 @@ type App struct {
 	Logger         *infra.AppLogger
 }
 
-func NewApp(env config.Env, logger *infra.AppLogger) *App {
+func NewApp(env config.Env, logger *infra.AppLogger, redisService infra.RedisService) *App {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: setup.DefaultErrorHandler,
 		AppName:      "Fiber Rest API",
@@ -30,7 +30,7 @@ func NewApp(env config.Env, logger *infra.AppLogger) *App {
 	})
 
 	protected := api.Group("/protected")
-	protected.Use(middleware.AuthAccess(env), middleware.CurrentAuthUser())
+	protected.Use(middleware.AuthAccess(env), middleware.AccessNotBlacklisted(redisService), middleware.CurrentAuthUser())
 
 	return &App{
 		App:            app,

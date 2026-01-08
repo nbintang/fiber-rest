@@ -10,7 +10,7 @@ type validatorImpl struct {
 	validator *validator.Validate
 }
 
-func NewValidator() Validator {
+func NewValidatorService() Validator {
 	return &validatorImpl{validator: validator.New()}
 }
 

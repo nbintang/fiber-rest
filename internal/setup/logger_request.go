@@ -1,9 +1,8 @@
 package setup
 
 import (
-	"time"
-
 	"rest-fiber/internal/infra"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"

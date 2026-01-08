@@ -16,12 +16,12 @@ func DefaultErrorHandler(c *fiber.Ctx, err error) error {
 				"tag":   fe.Tag(),
 			})
 		}
-		return c.Status(fiber.StatusBadRequest).JSON(NewHttpResponse(statusCode,out, msg))
+		return c.Status(fiber.StatusBadRequest).JSON(NewHttpResponse(statusCode, msg, out))
 	}
 
 	if e, ok := err.(*fiber.Error); ok {
 		statusCode = e.Code
 		msg = e.Message
 	}
-	return c.Status(statusCode).JSON(NewHttpResponse(statusCode,nil, msg))
+	return c.Status(statusCode).JSON(NewHttpResponse(statusCode, msg, nil))
 }

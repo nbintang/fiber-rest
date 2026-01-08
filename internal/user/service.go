@@ -44,8 +44,11 @@ func (s *userServiceImpl) FindUserByID(ctx context.Context, id string) (*UserRes
 	}
 	return &UserResponseDTO{
 		ID:        user.ID,
+		AvatarURL: user.AvatarURL,
 		Name:      user.Name,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
 	}, nil
 }
+ 
+

@@ -1,7 +1,10 @@
 package infra
 
 import (
+	"errors"
 	"rest-fiber/config"
+	"rest-fiber/internal/enums"
+
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -10,11 +13,15 @@ import (
 type GenerateTokenParams struct {
 	ID    string
 	Email string
+	Role  enums.EUserRoleType
+	JTI   string
+	Type  enums.ETokenType
 }
 
 type TokenService interface {
 	GenerateToken(params *GenerateTokenParams, envStr string, duration time.Duration) (string, error)
 	VerifyToken(tokenStr string, envStr string) (*jwt.MapClaims, error)
+	RemainingTTLFromAccessToken(accessToken string) (time.Duration, error)
 }
 
 type tokenServiceImpl struct{}
@@ -25,12 +32,20 @@ func NewTokenService(env config.Env) TokenService {
 
 func (s *tokenServiceImpl) GenerateToken(params *GenerateTokenParams, envStr string, duration time.Duration) (string, error) {
 	expirationTime := time.Now().Add(duration)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    params.ID,
-		"email": params.Email,
-		"exp":   expirationTime.Unix(),
-		"iat":   time.Now().Unix(),
-	})
+	claims := jwt.MapClaims{
+		"id":   params.ID,
+		"exp":  expirationTime.Unix(),
+		"type": string(params.Type),
+		"iat":  time.Now().Unix(),
+		"role": params.Role,
+	}
+	if params.JTI != "" {
+		claims["jti"] = params.JTI
+	}
+	if params.Email != "" {
+		claims["email"] = params.Email
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(envStr))
 }
 
@@ -54,4 +69,27 @@ func (s *tokenServiceImpl) VerifyToken(tokenStr string, envStr string) (*jwt.Map
 		return nil, jwt.ErrTokenInvalidClaims
 	}
 	return &claims, nil
+}
+
+func (s *tokenServiceImpl) RemainingTTLFromAccessToken(accessToken string) (time.Duration, error) {
+	token, _, err := new(jwt.Parser).ParseUnverified(accessToken, jwt.MapClaims{})
+	if err != nil {
+		return 0, err
+	}
+
+	claims := token.Claims.(jwt.MapClaims)
+
+	expFloat, ok := claims["exp"].(float64)
+	if !ok {
+		return 0, errors.New("invalid exp claim")
+	}
+
+	expTime := time.Unix(int64(expFloat), 0)
+	ttl := time.Until(expTime)
+
+	if ttl < 0 {
+		ttl = 0
+	}
+
+	return ttl, nil
 }

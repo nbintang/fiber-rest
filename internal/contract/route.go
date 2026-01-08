@@ -7,5 +7,5 @@ type Route interface {
 }
 
 type ProtectedRoute interface {
-	RegisterProtectedRoute(protected fiber.Router)
+	RegisterProtectedRoute(api fiber.Router)
 }
