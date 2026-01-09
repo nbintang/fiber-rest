@@ -49,3 +49,13 @@ func (s *userServiceImpl) FindUserByID(ctx context.Context, id string) (*UserRes
 		CreatedAt: user.CreatedAt,
 	}, nil
 }
+
+func (s *userServiceImpl) UpdateProfile(ctx context.Context, id string, dto UserUpdateDTO) error {
+	user, err := s.userRepo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	user.Name = dto.Name
+	user.AvatarURL = dto.AvatarURL
+	return s.userRepo.Update(ctx, id, user)
+}

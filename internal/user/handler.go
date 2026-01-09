@@ -11,10 +11,11 @@ import (
 type userHandlerImpl struct {
 	userService UserService
 	logger      *infra.AppLogger
+	validator   infra.Validator
 }
 
-func NewUserHandler(userService UserService, logger *infra.AppLogger) UserHandler {
-	return &userHandlerImpl{userService, logger}
+func NewUserHandler(userService UserService, logger *infra.AppLogger, validator infra.Validator) UserHandler {
+	return &userHandlerImpl{userService, logger, validator}
 }
 
 func (h *userHandlerImpl) GetAllUsers(c *fiber.Ctx) error {
@@ -47,7 +48,6 @@ func (h *userHandlerImpl) GetUserByID(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid user id")
 	}
 	ctx := c.UserContext()
-
 	userResponse, err := h.userService.FindUserByID(ctx, id)
 	if err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
@@ -57,7 +57,7 @@ func (h *userHandlerImpl) GetUserByID(c *fiber.Ctx) error {
 }
 
 func (h *userHandlerImpl) GetCurrentUser(c *fiber.Ctx) error {
-	userId := c.Locals("userID").(string)
+	userId, _ := c.Locals("userID").(string)
 	if userId == "" {
 		c.Status(401).JSON(httpx.NewHttpResponse(fiber.StatusUnauthorized, "Unauthorized", nil))
 	}
@@ -68,4 +68,28 @@ func (h *userHandlerImpl) GetCurrentUser(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpResponse(fiber.StatusOK, "Success", userResponse))
+}
+
+func (h *userHandlerImpl) UpdateCurrentUser(c *fiber.Ctx) error {
+	userId, _ := c.Locals("userID").(string)
+	if userId == "" {
+		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
+	}
+
+	var dto UserUpdateDTO
+	if err := c.BodyParser(&dto); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	if err := h.validator.Struct(dto); err != nil {
+		return err
+	}
+
+	if err := h.userService.UpdateProfile(c.UserContext(), userId, dto); err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.Status(fiber.StatusOK).JSON(
+		httpx.NewHttpResponse(fiber.StatusOK, "User Updated Successfully", nil),
+	)
 }

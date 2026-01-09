@@ -18,6 +18,7 @@ func (r *userRouteImpl) RegisterProtectedRoute(api fiber.Router) {
 	users.Get("/", r.h.GetAllUsers)
 	users.Get("/me", r.h.GetCurrentUser)
 	users.Get("/:id", r.h.GetUserByID)
+	users.Patch("/me", r.h.UpdateCurrentUser)
 } 
 
 

@@ -19,7 +19,8 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 func (r *userRepositoryImpl) FindAll(ctx context.Context, limit, offset int) ([]User, int64, error) {
 	var users []User
 	var total int64
-	db := r.db.WithContext(ctx).Model(&User{})
+	var user User
+	db := r.db.WithContext(ctx).Model(&user)
 	if err := db.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
@@ -55,7 +56,8 @@ func (r *userRepositoryImpl) FindByEmail(ctx context.Context, email string) (*Us
 
 func (r *userRepositoryImpl) FindExistsByEmail(ctx context.Context, email string) (bool, error) {
 	var count int64
-	err := r.db.WithContext(ctx).Model(&User{}).Scopes(WhereEmail(email)).Count(&count).Error
+	var user User
+	err := r.db.WithContext(ctx).Model(&user).Scopes(WhereEmail(email)).Count(&count).Error
 	return count > 0, err
 }
 
