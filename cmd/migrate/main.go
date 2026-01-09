@@ -11,7 +11,7 @@ func main() {
 	ctx := context.Background()
 	pkg.LoadEnv()
 	if err := InitMigrate(ctx); err != nil {
-		logrus.Fatalf("Migration failed: %v", err)
+		logrus.Warnf("Migration failed: %v", err)
 	}
 	logrus.Println("Migration Succeed")
 }
