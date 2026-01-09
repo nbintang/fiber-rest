@@ -68,9 +68,6 @@ jobs:
       - name: Migrate
         run: go run ./cmd/migrate
 
-      - name: Seed
-        run: go run ./cmd/seed
-
       - name: Test
         run: go test ./...
 
