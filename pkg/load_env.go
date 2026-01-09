@@ -5,8 +5,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func LoadEnv( ) {
+func LoadEnv() {
 	if err := godotenv.Load(); err != nil {
-		logrus.Fatalf("Error loading .env file: %v", err)
+		logrus.Warn("No .env file found, using environment variables")
 	}
 }
