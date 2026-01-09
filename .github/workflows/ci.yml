@@ -54,10 +54,10 @@ jobs:
         run: go mod download
 
       - name: Migrate
-        run: go run ./cmd/migrate/main.go
+        run: go run ./cmd/migrate
 
       - name: Seed
-        run: go run ./cmd/seed/main.go
+        run: go run ./cmd/seed
 
       - name: Test
         run: go test ./...
