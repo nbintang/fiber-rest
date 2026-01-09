@@ -1,6 +1,8 @@
 package setup
 
 import (
+	"rest-fiber/pkg/httpx"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
@@ -16,12 +18,12 @@ func DefaultErrorHandler(c *fiber.Ctx, err error) error {
 				"tag":   fe.Tag(),
 			})
 		}
-		return c.Status(fiber.StatusBadRequest).JSON(NewHttpResponse(statusCode, msg, out))
+		return c.Status(fiber.StatusBadRequest).JSON(httpx.NewHttpResponse(statusCode, msg, out))
 	}
 
 	if e, ok := err.(*fiber.Error); ok {
 		statusCode = e.Code
 		msg = e.Message
 	}
-	return c.Status(statusCode).JSON(NewHttpResponse(statusCode, msg, nil))
+	return c.Status(statusCode).JSON(httpx.NewHttpResponse(statusCode, msg, nil))
 }

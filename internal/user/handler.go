@@ -2,7 +2,7 @@ package user
 
 import (
 	"rest-fiber/internal/infra"
-	"rest-fiber/internal/setup"
+	"rest-fiber/pkg/httpx"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -19,11 +19,28 @@ func NewUserHandler(userService UserService, logger *infra.AppLogger) UserHandle
 
 func (h *userHandlerImpl) GetAllUsers(c *fiber.Ctx) error {
 	ctx := c.UserContext()
-	userResponses, err := h.userService.FindAllUsers(ctx)
-	if err != nil {
-		return err
+	var query httpx.PaginationQuery
+	if err := c.QueryParser(&query); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
-	return c.Status(fiber.StatusOK).JSON(setup.NewHttpResponse(fiber.StatusOK, "Success", userResponses))
+
+	if err := query.Validate(); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	query = query.Normalize(10, 100)
+
+	data, total, err := h.userService.FindAllUsers(ctx, query.Page, query.Limit, query.Offset())
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	meta := httpx.NewPaginationResponse(query.Page, query.Limit, total)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Success",
+		"data":    data,
+		"meta":    meta,
+	})
 }
 
 func (h *userHandlerImpl) GetUserByID(c *fiber.Ctx) error {
@@ -39,13 +56,13 @@ func (h *userHandlerImpl) GetUserByID(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(setup.NewHttpResponse(fiber.StatusOK, "Success", userResponse))
+	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpResponse(fiber.StatusOK, "Success", userResponse))
 }
 
 func (h *userHandlerImpl) GetCurrentUser(c *fiber.Ctx) error {
 	userId := c.Locals("userID").(string)
 	if userId == "" {
-		c.Status(401).JSON(setup.NewHttpResponse(fiber.StatusUnauthorized, "Unauthorized", nil))
+		c.Status(401).JSON(httpx.NewHttpResponse(fiber.StatusUnauthorized, "Unauthorized", nil))
 	}
 	ctx := c.UserContext()
 	h.logger.Infof("user Id :%s", userId)
@@ -53,5 +70,5 @@ func (h *userHandlerImpl) GetCurrentUser(c *fiber.Ctx) error {
 	if err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
-	return c.Status(fiber.StatusOK).JSON(setup.NewHttpResponse(fiber.StatusOK, "Success", userResponse))
+	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpResponse(fiber.StatusOK, "Success", userResponse))
 }

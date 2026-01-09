@@ -1,6 +1,6 @@
 package user
 
-import (
+import ( 
 	"time"
 
 	"github.com/google/uuid"
@@ -13,3 +13,4 @@ type UserResponseDTO struct {
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
 }
+ 

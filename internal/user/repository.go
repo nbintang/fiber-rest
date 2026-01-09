@@ -16,10 +16,19 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepositoryImpl{db}
 }
 
-func (r *userRepositoryImpl) FindAll(ctx context.Context) ([]User, error) {
-	var user []User
-	err := r.db.WithContext(ctx).Find(&user).Error
-	return user, err
+func (r *userRepositoryImpl) FindAll(ctx context.Context, limit, offset int) ([]User, int64, error) {
+	var users []User
+	var total int64
+	db := r.db.WithContext(ctx).Model(&User{})
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	if err := db.Scopes(Paginate(limit, offset)).Find(&users).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return users, total, nil
 }
 
 func (r *userRepositoryImpl) FindByID(ctx context.Context, id string) (*User, error) {

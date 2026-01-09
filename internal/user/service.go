@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"rest-fiber/internal/infra"
+	"rest-fiber/pkg"
 )
 
 type userServiceImpl struct {
@@ -15,24 +16,21 @@ func NewUserService(userRepo UserRepository, logger *infra.AppLogger) UserServic
 	return &userServiceImpl{userRepo, logger}
 }
 
-func (s *userServiceImpl) FindAllUsers(ctx context.Context) ([]UserResponseDTO, error) {
-	users, err := s.userRepo.FindAll(ctx)
+func (s *userServiceImpl) FindAllUsers(ctx context.Context, page, limit, offset int) ([]UserResponseDTO, int64, error) {
+	users, total, err := s.userRepo.FindAll(ctx, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
-
-	userResponses := make([]UserResponseDTO, 0, len(users))
-	for _, user := range users {
-		userResponses = append(userResponses, UserResponseDTO{
-			ID:        user.ID,
-			Name:      user.Name,
-			AvatarURL: user.AvatarURL,
-			Email:     user.Email,
-			CreatedAt: user.CreatedAt,
-		})
-	}
-
-	return userResponses, nil
+	userResponses := pkg.MapSlices[User, UserResponseDTO](users, func(u User) UserResponseDTO {
+		return UserResponseDTO{
+			ID:        u.ID,
+			Name:      u.Name,
+			AvatarURL: u.AvatarURL,
+			Email:     u.Email,
+			CreatedAt: u.CreatedAt,
+		}
+	})
+	return userResponses, total, nil
 }
 
 func (s *userServiceImpl) FindUserByID(ctx context.Context, id string) (*UserResponseDTO, error) {
@@ -51,5 +49,3 @@ func (s *userServiceImpl) FindUserByID(ctx context.Context, id string) (*UserRes
 		CreatedAt: user.CreatedAt,
 	}, nil
 }
- 
-

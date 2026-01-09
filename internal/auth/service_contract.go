@@ -9,3 +9,4 @@ type AuthService interface {
 	RefreshToken(ctx context.Context, refreshToken string) (Tokens, error)
 	Logout(ctx context.Context, refreshToken string) error
 }
+

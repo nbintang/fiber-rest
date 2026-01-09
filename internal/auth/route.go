@@ -6,7 +6,7 @@ import (
 	"rest-fiber/internal/infra"
 	"rest-fiber/internal/middleware"
 
-	"github.com/gofiber/fiber/v2" 
+	"github.com/gofiber/fiber/v2"
 	"go.uber.org/fx"
 )
 
@@ -33,5 +33,5 @@ func (r *authRouteImpl) RegisterRoute(api fiber.Router) {
 	auth.Post("/verify", middleware.RateLimiter(storageParams), r.h.VerifyEmail)
 	auth.Post("/login", middleware.RateLimiter(storageParams), r.h.Login)
 	auth.Delete("/logout", middleware.RateLimiter(storageParams), r.h.Logout)
-	auth.Post("/refresh-token", r.h.RefreshToken)
+	auth.Post("/refresh-token", middleware.RateLimiter(storageParams), r.h.RefreshToken)
 }

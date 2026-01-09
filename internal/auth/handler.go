@@ -2,8 +2,8 @@ package auth
 
 import (
 	"rest-fiber/config"
-	"rest-fiber/internal/infra"
-	"rest-fiber/internal/setup" 
+	"rest-fiber/internal/infra" 
+	"rest-fiber/pkg/httpx"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -34,7 +34,7 @@ func (h *authHandlerImpl) Register(c *fiber.Ctx) error {
 	if err := h.authService.Register(ctx, &dto); err != nil {
 		return fiber.NewError(fiber.StatusUnauthorized, err.Error())
 	}
-	return c.Status(fiber.StatusCreated).JSON(setup.NewHttpResponse(fiber.StatusCreated, "Success! please check your email", nil))
+	return c.Status(fiber.StatusCreated).JSON(httpx.NewHttpResponse(fiber.StatusCreated, "Success! please check your email", nil))
 }
 
 func (h *authHandlerImpl) VerifyEmail(c *fiber.Ctx) error {
@@ -45,7 +45,7 @@ func (h *authHandlerImpl) VerifyEmail(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusUnauthorized, err.Error())
 	}
 	h.setRefreshTokenCookie(c, tokens.RefreshToken)
-	return c.Status(fiber.StatusOK).JSON(setup.NewHttpResponse(
+	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpResponse(
 		fiber.StatusOK,
 		"Email Verified Successfull!",
 		fiber.Map{"access_token": token},
@@ -64,7 +64,7 @@ func (h *authHandlerImpl) Login(c *fiber.Ctx) error {
 	}
 	h.setRefreshTokenCookie(c, tokens.RefreshToken)
 	return c.Status(fiber.StatusOK).JSON(
-		setup.NewHttpResponse(
+		httpx.NewHttpResponse(
 			fiber.StatusOK,
 			"Login successful",
 			fiber.Map{"access_token": tokens.AccessToken},
@@ -85,7 +85,7 @@ func (h *authHandlerImpl) RefreshToken(c *fiber.Ctx) error {
 	}
 
 	h.setRefreshTokenCookie(c, tokens.RefreshToken)
-	return c.Status(fiber.StatusOK).JSON(setup.NewHttpResponse(
+	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpResponse(
 		fiber.StatusOK,
 		"Refresh Token successful",
 		fiber.Map{"access_token": tokens.AccessToken},
@@ -100,7 +100,7 @@ func (h *authHandlerImpl) Logout(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "no token provide, please login!")
 	}
 	h.clearRefreshTokenCookie(c)
-	return c.Status(fiber.StatusBadRequest).JSON(setup.NewHttpResponse(fiber.StatusOK, "logout Success", nil))
+	return c.Status(fiber.StatusBadRequest).JSON(httpx.NewHttpResponse(fiber.StatusOK, "logout Success", nil))
 }
 
 func (h *authHandlerImpl) setRefreshTokenCookie(c *fiber.Ctx, token string) {
