@@ -14,11 +14,11 @@ func main() {
 	dbLogger := infra.NewDBLogger()
 	env, err := config.GetEnvs()
 	if err != nil {
-		logrus.Fatalf("Seed failed: %v", err)
+		logrus.Warnf("Seed failed: %v", err)
 	}
 	db, err := infra.GetDatabaseStandalone(env, dbLogger)
 	if err != nil {
-		logrus.Fatalf("Seed failed: %v", err)
+		logrus.Warnf("Seed failed: %v", err)
 	}
 	countFlag := flag.String("count", "1", "specify the count")
 	flag.Parse()
