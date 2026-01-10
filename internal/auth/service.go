@@ -4,15 +4,11 @@ import (
 	"context"
 	"errors"
 	"rest-fiber/config"
+	"rest-fiber/internal/enums"
 	"rest-fiber/internal/infra"
 	"rest-fiber/internal/user"
 	"rest-fiber/pkg"
 )
-
-type Tokens struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
 
 type authServiceImpl struct {
 	userRepo     user.UserRepository
@@ -71,80 +67,77 @@ func (s *authServiceImpl) Register(ctx context.Context, dto *RegisterRequestDTO)
 	}()
 	return nil
 }
-func (s *authServiceImpl) Login(ctx context.Context, dto *LoginRequestDTO) (Tokens, error) {
+func (s *authServiceImpl) Login(ctx context.Context, dto *LoginRequestDTO) (TokensResponseDto, error) {
 	user, err := s.userRepo.FindByEmail(ctx, dto.Email)
 	if err != nil {
-		return Tokens{}, err
+		return TokensResponseDto{}, err
 	}
 	if user == nil {
-		return Tokens{}, errors.New("User Not Found")
+		return TokensResponseDto{}, errors.New("User Not Found")
 	}
 	if err := pkg.ComparePassword(dto.Password, user.Password); err != nil {
-		return Tokens{}, errors.New("Invalid Password")
+		return TokensResponseDto{}, errors.New("Invalid Password")
 	}
 	if user.IsEmailVerified == false {
-		return Tokens{}, errors.New("Email Not Verified")
+		return TokensResponseDto{}, errors.New("Email Not Verified")
 	}
-	return s.generateTokens(ctx, user.ID.String(), user.Email)
+	return s.generateTokens(ctx, user.ID.String(), user.Email, enums.EUserRoleType(user.Role))
 }
-func (s *authServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (Tokens, error) {
+func (s *authServiceImpl) RefreshToken(ctx context.Context, refreshToken string) (TokensResponseDto, error) {
 	claims, err := s.tokenService.VerifyToken(refreshToken, s.env.JWTRefreshSecret)
 	if err != nil {
-		return Tokens{}, err
+		return TokensResponseDto{}, err
 	}
 	userID, _ := (*claims)["id"].(string)
 	oldRT, ok := (*claims)["jti"].(string)
 	if !ok || oldRT == "" || userID == "" {
-		return Tokens{}, errors.New("invalid token claims")
+		return TokensResponseDto{}, errors.New("invalid token claims")
 	}
 	storedUserID, exists, err := s.redisService.GetAndDel(ctx, "refresh:"+oldRT)
 	if err != nil {
-		return Tokens{}, err
+		return TokensResponseDto{}, err
 	}
 	if !exists || storedUserID != userID {
 		s.logger.Warnf("refresh token reuse detected for user %s with JTI %s", userID, oldRT)
 		s.revokeAllUserTokens(ctx, userID)
-		return Tokens{}, errors.New("token reuse detected")
+		return TokensResponseDto{}, errors.New("token reuse detected")
 	}
 	s.blacklistAccessByRefreshJTI(ctx, oldRT)
 	s.redisService.Del(ctx, "rt_access:"+oldRT, "rt_access_exp:"+oldRT)
 	s.redisService.SRem(ctx, "user_tokens:"+userID, oldRT)
-	u, err := s.userRepo.FindByID(ctx, userID)
+	user, err := s.userRepo.FindByIDWithRole(ctx, userID)
 	if err != nil {
-		return Tokens{}, err
-	}
-	if u == nil {
-		return Tokens{}, errors.New("User Not Found")
-	}
-	if !u.IsEmailVerified {
-		return Tokens{}, errors.New("Email Not Verified")
-	}
-	return s.generateTokens(ctx, u.ID.String(), u.Email)
-}
-
-
-func (s *authServiceImpl) VerifyEmailToken(ctx context.Context, verificationToken string) (Tokens, error) {
-	claims, err := s.tokenService.VerifyToken(verificationToken, s.env.JWTVerificationSecret)
-	if err != nil {
-		return Tokens{}, err
-	}
-	userID := (*claims)["id"].(string)
-	user, err := s.userRepo.FindByID(ctx, userID)
-	if err != nil {
-		return Tokens{}, err
+		return TokensResponseDto{}, err
 	}
 	if user == nil {
-		return Tokens{}, errors.New("User Not Found")
+		return TokensResponseDto{}, errors.New("User Not Found")
+	}
+	if !user.IsEmailVerified {
+		return TokensResponseDto{}, errors.New("Email Not Verified")
+	}
+	return s.generateTokens(ctx, user.ID.String(), user.Email, enums.EUserRoleType(user.Role))
+}
+
+func (s *authServiceImpl) VerifyEmailToken(ctx context.Context, verificationToken string) (TokensResponseDto, error) {
+	claims, err := s.tokenService.VerifyToken(verificationToken, s.env.JWTVerificationSecret)
+	if err != nil {
+		return TokensResponseDto{}, err
+	}
+	userID := (*claims)["id"].(string)
+	user, err := s.userRepo.FindByIDWithRole(ctx, userID)
+	if err != nil {
+		return TokensResponseDto{}, err
+	}
+	if user == nil {
+		return TokensResponseDto{}, errors.New("User Not Found")
 	}
 	user.IsEmailVerified = true
 	if err = s.userRepo.Update(ctx, user.ID.String(), user); err != nil {
-		return Tokens{}, err
+		return TokensResponseDto{}, err
 	}
 
-	return s.generateTokens(ctx, user.ID.String(), user.Email)
+	return s.generateTokens(ctx, user.ID.String(), user.Email, enums.EUserRoleType(user.Role))
 }
-
-
 
 func (s *authServiceImpl) Logout(ctx context.Context, refreshToken string) error {
 	if refreshToken == "" {
@@ -168,4 +161,3 @@ func (s *authServiceImpl) Logout(ctx context.Context, refreshToken string) error
 	s.redisService.SRem(ctx, "user_tokens:"+userID, rtJTI)
 	return nil
 }
-

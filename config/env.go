@@ -36,7 +36,8 @@ func GetEnvs() (Env, error) {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
-	viper.SetConfigFile(".env")
+	viper.SetConfigFile(".env.local")
+	viper.SetConfigType("env")
 	_ = viper.ReadInConfig()
 
 	var env Env

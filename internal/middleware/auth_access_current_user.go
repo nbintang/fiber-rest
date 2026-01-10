@@ -5,13 +5,11 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
-)
+) 
 
-const AccessAuth string = "access-auth"
-
-func CurrentAuthUser() fiber.Handler {
+func AccessCurrentUser() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		token, ok := c.Locals(AccessAuth).(*jwt.Token)
+		token, ok := c.Locals(enums.AccessAuthKey).(*jwt.Token)
 		if !ok || token == nil {
 			return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
 		}
@@ -21,10 +19,20 @@ func CurrentAuthUser() fiber.Handler {
 		}
 		id, _ := claims["id"].(string)
 		email, _ := claims["email"].(string)
-		role, _ := claims["role"].(enums.EUserRoleType)
-		c.Locals("userID", id)
-		c.Locals("userEmail", email)
-		c.Locals("userRole", role)
+		role, _ := claims["role"].(string)
+		jti, _ := claims["jti"].(string)
+		if id == "" ||
+			email == "" ||
+			role == "" ||
+			jti == "" {
+			return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
+		}
+		c.Locals(enums.CurrentUserKey, &AuthClaims{
+			ID:    id,
+			Email: email,
+			Role:  enums.EUserRoleType(role),
+			JTI:   jti,
+		})
 		return c.Next()
 	}
 }

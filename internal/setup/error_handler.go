@@ -25,5 +25,5 @@ func DefaultErrorHandler(c *fiber.Ctx, err error) error {
 		statusCode = e.Code
 		msg = e.Message
 	}
-	return c.Status(statusCode).JSON(httpx.NewHttpResponse(statusCode, msg, nil))
+	return c.Status(statusCode).JSON(httpx.NewHttpResponse[any](statusCode, msg, nil))
 }

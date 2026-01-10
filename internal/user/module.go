@@ -13,7 +13,7 @@ var Module = fx.Module(
 		NewUserRepository,
 		NewUserService,
 		NewUserHandler,
-		setup.RouteProvider[UserHandler, contract.ProtectedRoute](
+		setup.RouteProvider[UserRouteParams, contract.ProtectedRoute](
 			NewUserRoute,
 			enums.RouteProtected,
 		),

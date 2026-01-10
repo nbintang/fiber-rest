@@ -5,33 +5,33 @@ import (
 	"rest-fiber/internal/contract"
 	"rest-fiber/internal/infra"
 	"rest-fiber/internal/middleware"
+	"rest-fiber/pkg/httpx"
 
-	"github.com/gofiber/fiber/v2"
-	"go.uber.org/fx"
+	"github.com/gofiber/fiber/v2" 
 )
 
 type AuthRouteParams struct {
-	fx.In
-	H   AuthHandler
-	Env config.Env
+	httpx.RouteParams
+	AuthHandler AuthHandler
+	Env         config.Env
 }
 
 type authRouteImpl struct {
-	h   AuthHandler
-	env config.Env
+	authHandler AuthHandler
+	env         config.Env
 }
 
-func NewAuthRoute(p AuthRouteParams) contract.Route {
-	return &authRouteImpl{h: p.H, env: p.Env}
+func NewAuthRoute(params AuthRouteParams) contract.Route {
+	return &authRouteImpl{authHandler: params.AuthHandler, env: params.Env}
 }
 func (r *authRouteImpl) RegisterRoute(api fiber.Router) {
 	auth := api.Group("/auth")
 
 	redisStarage := infra.GetRedisStorage(r.env)
 	storageParams := middleware.RateLimiterParams{MaxLimit: 3, Storage: redisStarage}
-	auth.Post("/register", middleware.RateLimiter(storageParams), r.h.Register)
-	auth.Post("/verify", middleware.RateLimiter(storageParams), r.h.VerifyEmail)
-	auth.Post("/login", middleware.RateLimiter(storageParams), r.h.Login)
-	auth.Delete("/logout", middleware.RateLimiter(storageParams), r.h.Logout)
-	auth.Post("/refresh-token", middleware.RateLimiter(storageParams), r.h.RefreshToken)
+	auth.Post("/register", middleware.AuthRateLimit(storageParams), r.authHandler.Register)
+	auth.Post("/verify", middleware.AuthRateLimit(storageParams), r.authHandler.VerifyEmail)
+	auth.Post("/login", middleware.AuthRateLimit(storageParams), r.authHandler.Login)
+	auth.Delete("/logout", middleware.AuthRateLimit(storageParams), r.authHandler.Logout)
+	auth.Post("/refresh-token", middleware.AuthRateLimit(storageParams), r.authHandler.RefreshToken)
 }

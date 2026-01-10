@@ -13,7 +13,7 @@ type RateLimiterParams struct {
 	Storage  storage.Storage
 }
 
-func RateLimiter(params RateLimiterParams) fiber.Handler {
+func AuthRateLimit(params RateLimiterParams) fiber.Handler {
 	config := limiter.Config{
 		Max:        params.MaxLimit,
 		Expiration: 1 * time.Minute,

@@ -5,8 +5,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func LoadEnv() {
-	if err := godotenv.Load(); err != nil {
+
+func LoadEnv(filenames ...string) {
+	if len(filenames) == 0 {
+		if err := godotenv.Load(".env"); err != nil {
+			logrus.Warn("No .env file found, using environment variables")
+		}
+		return
+	}
+
+	if err := godotenv.Load(filenames...); err != nil {
 		logrus.Warn("No .env file found, using environment variables")
 	}
 }

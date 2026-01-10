@@ -2,10 +2,11 @@ package internal
 
 import (
 	"context"
+
 	"go.uber.org/fx"
 )
 
-func RegisterHttpLifecycle(lc fx.Lifecycle, a *App) {
+func RegisterHttpLifecycle(lc fx.Lifecycle, a *Bootstrap) {
 	addr := a.Env.AppAddr
 	if addr == "" {
 		addr = ":8080"

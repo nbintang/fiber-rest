@@ -11,61 +11,58 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func (s *authServiceImpl) generateTokens(ctx context.Context, ID string, Email string) (Tokens, error) {
+func (s *authServiceImpl) generateTokens(ctx context.Context, id string, email string, role enums.EUserRoleType) (TokensResponseDto, error) {
 	accessTTL := 15 * time.Minute
 	refreshTTL := 24 * time.Hour
 	accessJTI := uuid.NewString()
 	accessExpUnix := time.Now().Add(accessTTL).Unix()
 	accessToken, err := s.tokenService.GenerateToken(&infra.GenerateTokenParams{
-		ID: ID, Email: Email, Role: enums.Member, JTI: accessJTI,
+		ID: id, Email: email, Role: enums.EUserRoleType(role), JTI: accessJTI,
 		Type: enums.TokenAccess}, s.env.JWTAccessSecret, accessTTL,
 	)
 
 	if err != nil {
-		return Tokens{}, err
+		return TokensResponseDto{}, err
 	}
 	refreshJTI := uuid.NewString()
 	refreshToken, err := s.tokenService.GenerateToken(&infra.GenerateTokenParams{
-		ID: ID, Email: Email, Role: enums.Member, JTI: refreshJTI,
+		ID: id, Email: email, Role: enums.EUserRoleType(role), JTI: refreshJTI,
 		Type: enums.TokenRefresh}, s.env.JWTRefreshSecret, refreshTTL,
 	)
 	if err != nil {
-		return Tokens{}, err
+		return TokensResponseDto{}, err
 	}
 
-	if err := s.redisService.Set(ctx, "refresh:"+refreshJTI, ID, refreshTTL); err != nil {
-		return Tokens{}, err
+	if err := s.redisService.Set(ctx, "refresh:"+refreshJTI, id, refreshTTL); err != nil {
+		return TokensResponseDto{}, err
 	}
 	if err := s.redisService.Set(ctx, "rt_access:"+refreshJTI, accessJTI, refreshTTL); err != nil {
 		s.redisService.Del(ctx, "refresh:"+refreshJTI)
-		return Tokens{}, err
+		return TokensResponseDto{}, err
 	}
 	if err := s.redisService.Set(ctx, "rt_access_exp:"+refreshJTI, accessExpUnix, refreshTTL); err != nil {
 		s.redisService.Del(ctx, "refresh:"+refreshJTI, "rt_access:"+refreshJTI)
-		return Tokens{}, err
+		return TokensResponseDto{}, err
 	}
-	if err := s.redisService.SAdd(ctx, "user_tokens:"+ID, refreshJTI, refreshTTL); err != nil {
+	if err := s.redisService.SAdd(ctx, "user_tokens:"+id, refreshJTI, refreshTTL); err != nil {
 		s.redisService.Del(ctx,
 			"refresh:"+refreshJTI,
 			"rt_access:"+refreshJTI,
 			"rt_access_exp:"+refreshJTI,
 		)
-		return Tokens{}, err
+		return TokensResponseDto{}, err
 	}
-	return Tokens{AccessToken: accessToken, RefreshToken: refreshToken}, nil
+	return TokensResponseDto{AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
 
-
-func (s *authServiceImpl) generateVerificationToken(ID string) (string, error) {
+func (s *authServiceImpl) generateVerificationToken(id string) (string, error) {
 	return s.tokenService.GenerateToken(&infra.GenerateTokenParams{
-		ID:   ID,
-		Role: enums.Member,
+		ID: id,
 	},
 		s.env.JWTVerificationSecret,
 		3*time.Minute,
 	)
 }
-
 
 func (s *authServiceImpl) revokeAllUserTokens(ctx context.Context, userID string) error {
 	userTokensKey := "user_tokens:" + userID

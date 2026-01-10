@@ -2,23 +2,30 @@ package user
 
 import (
 	"rest-fiber/internal/contract"
+	"rest-fiber/internal/enums"
+	"rest-fiber/internal/middleware"
+	"rest-fiber/pkg/httpx"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-type userRouteImpl struct {
-	h UserHandler
+
+type UserRouteParams struct{
+	httpx.RouteParams
+	UserHandler UserHandler
 }
 
-func NewUserRoute(h UserHandler) contract.ProtectedRoute {
-	return &userRouteImpl{h}
+type userRouteImpl struct {
+	userHandler UserHandler
+}
+
+func NewUserRoute(params UserRouteParams) contract.ProtectedRoute {
+	return &userRouteImpl{userHandler: params.UserHandler}
 }
 func (r *userRouteImpl) RegisterProtectedRoute(api fiber.Router) {
 	users := api.Group("/users")
-	users.Get("/", r.h.GetAllUsers)
-	users.Get("/me", r.h.GetCurrentUser)
-	users.Get("/:id", r.h.GetUserByID)
-	users.Patch("/me", r.h.UpdateCurrentUser)
-} 
-
-
+	users.Get("/me", r.userHandler.GetCurrentUserProfile)
+	users.Patch("/me", r.userHandler.UpdateCurrentUser)
+	users.Get("/", middleware.AuthRoleAccess(enums.Admin), r.userHandler.GetAllUsers)
+	users.Get("/:id", middleware.AuthRoleAccess(enums.Admin), r.userHandler.GetUserByID)
+}

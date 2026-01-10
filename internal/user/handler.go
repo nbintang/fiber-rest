@@ -2,6 +2,7 @@ package user
 
 import (
 	"rest-fiber/internal/infra"
+	"rest-fiber/internal/middleware"
 	"rest-fiber/pkg/httpx"
 
 	"github.com/gofiber/fiber/v2"
@@ -48,48 +49,47 @@ func (h *userHandlerImpl) GetUserByID(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid user id")
 	}
 	ctx := c.UserContext()
-	userResponse, err := h.userService.FindUserByID(ctx, id)
+	data, err := h.userService.FindUserByID(ctx, id)
 	if err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpResponse(fiber.StatusOK, "Success", userResponse))
+	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpResponse(fiber.StatusOK, "Success", data))
 }
 
-func (h *userHandlerImpl) GetCurrentUser(c *fiber.Ctx) error {
-	userId, _ := c.Locals("userID").(string)
-	if userId == "" {
-		c.Status(401).JSON(httpx.NewHttpResponse(fiber.StatusUnauthorized, "Unauthorized", nil))
+func (h *userHandlerImpl) GetCurrentUserProfile(c *fiber.Ctx) error {
+	currentUser, err := middleware.GetCurrentUser(c)
+	if err != nil {
+		return err
 	}
 	ctx := c.UserContext()
-	h.logger.Infof("user Id :%s", userId)
-	userResponse, err := h.userService.FindUserByID(ctx, userId)
+	h.logger.Infof("user Id :%s", currentUser.ID)
+	data, err := h.userService.FindUserByID(ctx, currentUser.ID)
 	if err != nil {
 		return fiber.NewError(fiber.StatusNotFound, err.Error())
 	}
-	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpResponse(fiber.StatusOK, "Success", userResponse))
+	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpResponse(fiber.StatusOK, "Success", data))
 }
 
 func (h *userHandlerImpl) UpdateCurrentUser(c *fiber.Ctx) error {
-	userId, _ := c.Locals("userID").(string)
-	if userId == "" {
-		return fiber.NewError(fiber.StatusUnauthorized, "Unauthorized")
+	currentUser, err := middleware.GetCurrentUser(c)
+	if err != nil {
+		return err
 	}
-
-	var dto UserUpdateDTO
-	if err := c.BodyParser(&dto); err != nil {
+	var body UserUpdateDTO
+	if err := c.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	if err := h.validator.Struct(dto); err != nil {
+	if err := h.validator.Struct(body); err != nil {
 		return err
 	}
 
-	if err := h.userService.UpdateProfile(c.UserContext(), userId, dto); err != nil {
+	if err := h.userService.UpdateProfile(c.UserContext(), currentUser.ID, body); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
 	return c.Status(fiber.StatusOK).JSON(
-		httpx.NewHttpResponse(fiber.StatusOK, "User Updated Successfully", nil),
+		httpx.NewHttpResponse[any](fiber.StatusOK, "User Updated Successfully", nil),
 	)
 }

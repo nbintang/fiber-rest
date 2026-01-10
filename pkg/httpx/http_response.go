@@ -16,7 +16,7 @@ func (e HttpResponse) Error() string {
 	return fmt.Sprintf("description: %s", e.Message)
 }
 
-func NewHttpResponse(statusCode int, message string, data any) HttpResponse {
+func NewHttpResponse[T any](statusCode int, message string, data T) HttpResponse {
 	return HttpResponse{
 		StatusCode: statusCode,
 		Message:    message,
