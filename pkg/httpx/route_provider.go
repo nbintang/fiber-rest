@@ -1,7 +1,7 @@
-package setup
+package httpx
 
 import (
-	"rest-fiber/internal/enums"
+	"rest-fiber/utils/enums"
 
 	"go.uber.org/fx"
 )

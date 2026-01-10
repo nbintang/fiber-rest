@@ -3,8 +3,7 @@ package infra
 import (
 	"errors"
 	"rest-fiber/config"
-	"rest-fiber/internal/enums"
-
+	"rest-fiber/utils/enums"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"

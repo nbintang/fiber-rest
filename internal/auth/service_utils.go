@@ -2,8 +2,8 @@ package auth
 
 import (
 	"context"
-	"rest-fiber/internal/enums"
 	"rest-fiber/internal/infra"
+	"rest-fiber/utils/enums"
 	"strconv"
 	"time"
 

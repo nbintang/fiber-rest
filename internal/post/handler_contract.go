@@ -6,4 +6,5 @@ type PostHandler interface {
 	GetAllPosts(c *fiber.Ctx) error
 	GetPostByID(c *fiber.Ctx) error
 	CreatePost(c *fiber.Ctx) error
+	UpdatePost(c *fiber.Ctx) error
 }

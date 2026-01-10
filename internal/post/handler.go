@@ -69,7 +69,38 @@ func (h *postHandlerImpl) CreatePost(c *fiber.Ctx) error {
 		return err
 	}
 
-	data, err := h.postService.CreatePost(ctx, currentUser.ID, body)
+	data, err := h.postService.CreatePost(ctx, body, currentUser.ID)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(httpx.NewHttpResponse[*PostResponseDTO](
+		fiber.StatusCreated,
+		"Success",
+		data,
+	))
+}
+func (h *postHandlerImpl) UpdatePost(c *fiber.Ctx) error {
+	currentUser, err := middleware.GetCurrentUser(c)
+	if err != nil {
+		return err
+	}
+
+	id:= c.Params("id");
+	if _, err := uuid.Parse(id); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid user id")
+	}
+
+	var body CreatePostRequestDTO
+	ctx := c.UserContext()
+	if err := c.BodyParser(&body); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	if err := h.validate.Struct(body); err != nil {
+		return err
+	}
+
+	data, err := h.postService.UpdatePost(ctx, id, body, currentUser.ID)
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}

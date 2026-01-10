@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"math/rand"
 	"rest-fiber/internal/category"
-	"rest-fiber/internal/enums"
 	"rest-fiber/internal/post"
 	"rest-fiber/internal/user"
-	"rest-fiber/pkg"
+	"rest-fiber/pkg/helper"
+	"rest-fiber/utils/enums"
+
 	"strings"
 
 	"github.com/go-faker/faker/v4"
@@ -31,7 +32,7 @@ func InitSeeds(db *gorm.DB, opt Options) error {
 		"Technology", "Programming", "Lifestyle", "Backend", "DevOps",
 		"Database", "Security", "Testing",
 	}
-	hashed, err := pkg.HashPassword("Password123")
+	hashed, err := helper.HashPassword("Password123")
 	if err != nil {
 		return err
 	}

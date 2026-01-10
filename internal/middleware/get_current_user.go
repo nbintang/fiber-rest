@@ -1,8 +1,7 @@
 package middleware
 
 import (
-	"rest-fiber/internal/enums" 
-
+	"rest-fiber/utils/enums"
 	"github.com/gofiber/fiber/v2"
 )
 

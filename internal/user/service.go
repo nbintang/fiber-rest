@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"rest-fiber/internal/infra"
-	"rest-fiber/pkg"
+	"rest-fiber/pkg/helper"
 )
 
 type userServiceImpl struct {
@@ -21,7 +21,7 @@ func (s *userServiceImpl) FindAllUsers(ctx context.Context, page, limit, offset 
 	if err != nil {
 		return nil, 0, err
 	}
-	userResponses := pkg.MapSlices[User, UserResponseDTO](users, func(u User) UserResponseDTO {
+	userResponses := helper.MapSlices[User, UserResponseDTO](users, func(u User) UserResponseDTO {
 		return UserResponseDTO{
 			ID:        u.ID,
 			Name:      u.Name,

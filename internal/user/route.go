@@ -2,9 +2,9 @@ package user
 
 import (
 	"rest-fiber/internal/contract"
-	"rest-fiber/internal/enums"
 	"rest-fiber/internal/middleware"
 	"rest-fiber/pkg/httpx"
+	"rest-fiber/utils/enums"
 
 	"github.com/gofiber/fiber/v2"
 )

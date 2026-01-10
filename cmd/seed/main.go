@@ -4,14 +4,14 @@ import (
 	"flag"
 	"rest-fiber/config"
 	"rest-fiber/internal/infra"
-	"rest-fiber/pkg"
+	"rest-fiber/utils"
 	"strconv"
 
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	pkg.LoadEnv()
+	utils.LoadEnv()
 	dbLogger := infra.NewDBLogger()
 
 	env, err := config.GetEnvs()

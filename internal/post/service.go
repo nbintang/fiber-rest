@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"rest-fiber/internal/category"
-	"rest-fiber/pkg"
+	"rest-fiber/pkg/helper"
 )
 
 type postServiceImpl struct {
@@ -21,15 +21,17 @@ func (s *postServiceImpl) FindAllPosts(ctx context.Context, page, limit, offset 
 	if err != nil {
 		return nil, 0, err
 	}
-	postsResponses := pkg.MapSlices[Post, PaginatedPostResponseDTO](posts, func(p Post) PaginatedPostResponseDTO {
-		return PaginatedPostResponseDTO{
-			ID:        p.ID,
-			ImageURL:  p.ImageURL,
-			Title:     p.Title,
-			Status:    p.Status,
-			CreatedAt: p.CreatedAt,
-		}
-	})
+	postsResponses := helper.MapSlices[Post, PaginatedPostResponseDTO](
+		posts,
+		func(p Post) PaginatedPostResponseDTO {
+			return PaginatedPostResponseDTO{
+				ID:        p.ID,
+				ImageURL:  p.ImageURL,
+				Title:     p.Title,
+				Status:    p.Status,
+				CreatedAt: p.CreatedAt,
+			}
+		})
 	return postsResponses, total, nil
 }
 
@@ -56,7 +58,7 @@ func (s *postServiceImpl) FindPostByID(ctx context.Context, id string) (*PostRes
 	}, nil
 }
 
-func (s *postServiceImpl) CreatePost(ctx context.Context, userID string, dto CreatePostRequestDTO) (*PostResponseDTO, error) {
+func (s *postServiceImpl) CreatePost(ctx context.Context, dto CreatePostRequestDTO, userID string) (*PostResponseDTO, error) {
 	exists, err := s.categoryRepo.ExistsByID(ctx, dto.CategoryID)
 	if err != nil {
 		return nil, err
@@ -91,6 +93,52 @@ func (s *postServiceImpl) CreatePost(ctx context.Context, userID string, dto Cre
 		Category: category.CategoryResponseDTO{
 			ID:   created.Category.ID,
 			Name: created.Category.Name,
+		},
+	}, nil
+}
+
+func (s *postServiceImpl) UpdatePost(ctx context.Context, id string, dto CreatePostRequestDTO, userID string) (*PostResponseDTO, error) {
+	postExists, err := s.postRepo.ExistsByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !postExists {
+		return nil, errors.New("Post Not Found")
+	}
+
+	catExists, err := s.categoryRepo.ExistsByID(ctx, dto.CategoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !catExists {
+		return nil, errors.New("Category Not Found")
+	}
+	post := &Post{
+		ImageURL:   dto.ImageURL,
+		Title:      dto.Title,
+		Body:       dto.Body,
+		CategoryID: dto.CategoryID,
+		Status:     dto.Status,
+		UserID:     userID,
+	}
+	postID, err := s.postRepo.Update(ctx, id, post)
+	if err != nil {
+		return nil, err
+	}
+	updated, err := s.postRepo.FindByID(ctx, postID.String())
+	return &PostResponseDTO{
+		ID:        updated.ID,
+		ImageURL:  updated.ImageURL,
+		Title:     updated.Title,
+		Status:    updated.Status,
+		Body:      updated.Body,
+		CreatedAt: updated.CreatedAt,
+		UpdatedAt: updated.UpdatedAt,
+		Category: category.CategoryResponseDTO{
+			ID:   updated.Category.ID,
+			Name: updated.Category.Name,
 		},
 	}, nil
 }

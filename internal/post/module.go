@@ -2,8 +2,8 @@ package post
 
 import (
 	"rest-fiber/internal/contract"
-	"rest-fiber/internal/enums"
-	"rest-fiber/internal/setup"
+	"rest-fiber/pkg/httpx"
+	"rest-fiber/utils/enums"
 
 	"go.uber.org/fx"
 )
@@ -14,7 +14,7 @@ var Module = fx.Module(
 		NewPostRepository,
 		NewPostService,
 		NewPostHandler,
-		setup.RouteProvider[PostRouteParams, contract.ProtectedRoute](
+		httpx.RouteProvider[PostRouteParams, contract.ProtectedRoute](
 			NewPostRoute,
 			enums.RouteProtected,
 		),

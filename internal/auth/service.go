@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"rest-fiber/config"
-	"rest-fiber/internal/enums"
 	"rest-fiber/internal/infra"
 	"rest-fiber/internal/user"
-	"rest-fiber/pkg"
+	"rest-fiber/pkg/helper"
+	"rest-fiber/utils/enums"
 )
 
 type authServiceImpl struct {
@@ -38,7 +38,7 @@ func (s *authServiceImpl) Register(ctx context.Context, dto *RegisterRequestDTO)
 	if exists {
 		return errors.New("User Already Exist")
 	}
-	hashed, err := pkg.HashPassword(dto.Password)
+	hashed, err := helper.HashPassword(dto.Password)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (s *authServiceImpl) Login(ctx context.Context, dto *LoginRequestDTO) (Toke
 	if user == nil {
 		return TokensResponseDto{}, errors.New("User Not Found")
 	}
-	if err := pkg.ComparePassword(dto.Password, user.Password); err != nil {
+	if err := helper.ComparePassword(dto.Password, user.Password); err != nil {
 		return TokensResponseDto{}, errors.New("Invalid Password")
 	}
 	if user.IsEmailVerified == false {

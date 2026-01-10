@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"rest-fiber/config"
-	"rest-fiber/internal/enums"
+	"rest-fiber/utils/enums"
 
 	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"

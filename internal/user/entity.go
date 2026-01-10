@@ -3,8 +3,8 @@ package user
 import (
 	"database/sql/driver"
 	"fmt"
-	"rest-fiber/internal/enums"
 	"rest-fiber/internal/post"
+	"rest-fiber/utils/enums"
 	"time"
 
 	"github.com/google/uuid"

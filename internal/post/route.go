@@ -23,4 +23,5 @@ func (r *postRouteImpl) RegisterProtectedRoute(api fiber.Router) {
 	posts.Get("/", r.postHandler.GetAllPosts)
 	posts.Get("/:id", r.postHandler.GetPostByID)
 	posts.Post("/", r.postHandler.CreatePost)
+	posts.Patch("/:id", r.postHandler.UpdatePost)
 }

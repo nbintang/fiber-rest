@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"rest-fiber/internal/category"
-	"rest-fiber/internal/enums"
+	"rest-fiber/utils/enums"
 	"time"
 
 	"github.com/google/uuid"
