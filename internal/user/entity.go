@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Role enums.EUserRoleType
@@ -23,7 +24,7 @@ type User struct {
 	Posts           []post.Post `gorm:"foreignKey:UserID;references:ID"`
 	CreatedAt       time.Time   `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt       time.Time   `gorm:"column:updated_at;autoCreateTime;autoUpdateTime"`
-	DeletedAt       *time.Time  `gorm:"column:deleted_at;default:null"`
+	DeletedAt       gorm.DeletedAt  `gorm:"index"` 
 }
 
 func (u *User) TableName() string {

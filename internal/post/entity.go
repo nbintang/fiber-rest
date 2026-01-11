@@ -23,7 +23,7 @@ type Post struct {
 	Category   category.Category `gorm:"foreignKey:CategoryID;references:ID"`
 	CreatedAt  time.Time         `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt  time.Time         `gorm:"column:updated_at;autoUpdateTime"`
-	DeletedAt  *time.Time        `gorm:"column:deleted_at;default:null"`
+	DeletedAt  *time.Time       `gorm:"index"` 
 }
 
 func (p *Post) TableName() string {
