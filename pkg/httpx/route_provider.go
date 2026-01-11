@@ -8,7 +8,10 @@ import (
 
 type RouteConstructor[P any, R any] func(P) R
 
-func RouteProvider[P any, R any](routeConstructor RouteConstructor[P, R], acc enums.EAccessType) any {
+func ProvideRoute[P any, R any](
+	routeConstructor RouteConstructor[P, R],
+	acc enums.EAccessType,
+) any {
 	return fx.Annotate(
 		routeConstructor,
 		fx.As(new(R)),

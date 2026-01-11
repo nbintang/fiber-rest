@@ -1,8 +1,7 @@
 package auth
 
 import (
-	"rest-fiber/config"
-	"rest-fiber/internal/contract"
+	"rest-fiber/config" 
 	"rest-fiber/internal/infra"
 	"rest-fiber/internal/middleware"
 	"rest-fiber/pkg/httpx"
@@ -21,7 +20,7 @@ type authRouteImpl struct {
 	env         config.Env
 }
 
-func NewAuthRoute(params AuthRouteParams) contract.Route {
+func NewAuthRoute(params AuthRouteParams) httpx.Route {
 	return &authRouteImpl{authHandler: params.AuthHandler, env: params.Env}
 }
 func (r *authRouteImpl) RegisterRoute(api fiber.Router) {

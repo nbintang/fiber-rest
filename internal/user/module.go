@@ -1,7 +1,6 @@
 package user
 
 import (
-	"rest-fiber/internal/contract"
 	"rest-fiber/pkg/httpx"
 	"rest-fiber/utils/enums"
 
@@ -14,7 +13,7 @@ var Module = fx.Module(
 		NewUserRepository,
 		NewUserService,
 		NewUserHandler,
-		httpx.RouteProvider[UserRouteParams, contract.ProtectedRoute](
+		httpx.ProvideRoute[UserRouteParams, httpx.ProtectedRoute](
 			NewUserRoute,
 			enums.RouteProtected,
 		),

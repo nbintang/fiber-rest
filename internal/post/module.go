@@ -1,7 +1,6 @@
 package post
 
 import (
-	"rest-fiber/internal/contract"
 	"rest-fiber/pkg/httpx"
 	"rest-fiber/utils/enums"
 
@@ -14,7 +13,7 @@ var Module = fx.Module(
 		NewPostRepository,
 		NewPostService,
 		NewPostHandler,
-		httpx.RouteProvider[PostRouteParams, contract.ProtectedRoute](
+		httpx.ProvideRoute[PostRouteParams, httpx.ProtectedRoute](
 			NewPostRoute,
 			enums.RouteProtected,
 		),

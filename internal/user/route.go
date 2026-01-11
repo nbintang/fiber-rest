@@ -1,7 +1,6 @@
 package user
 
 import (
-	"rest-fiber/internal/contract"
 	"rest-fiber/internal/middleware"
 	"rest-fiber/pkg/httpx"
 	"rest-fiber/utils/enums"
@@ -14,12 +13,11 @@ type UserRouteParams struct{
 	httpx.RouteParams
 	UserHandler UserHandler
 }
-
 type userRouteImpl struct {
 	userHandler UserHandler
 }
 
-func NewUserRoute(params UserRouteParams) contract.ProtectedRoute {
+func NewUserRoute(params UserRouteParams) httpx.ProtectedRoute {
 	return &userRouteImpl{userHandler: params.UserHandler}
 }
 func (r *userRouteImpl) RegisterProtectedRoute(api fiber.Router) {

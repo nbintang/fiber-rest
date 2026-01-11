@@ -1,4 +1,4 @@
-package contract
+package httpx
 
 import "github.com/gofiber/fiber/v2"
 

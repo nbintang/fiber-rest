@@ -1,7 +1,7 @@
 package internal
 
 import (
-	"rest-fiber/internal/contract"
+	"rest-fiber/pkg/httpx"
 
 	"go.uber.org/fx"
 )
@@ -9,8 +9,8 @@ import (
 type RoutesIn struct {
 	fx.In
 	App       *Bootstrap
-	Routes    []contract.Route          `group:"public_routes"`
-	Protected []contract.ProtectedRoute `group:"protected_routes"`
+	Routes    []httpx.Route          `group:"public_routes"`
+	Protected []httpx.ProtectedRoute `group:"protected_routes"`
 }
 
 func RegisterAllRoutes(in RoutesIn) {

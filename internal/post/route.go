@@ -1,7 +1,6 @@
 package post
 
-import (
-	"rest-fiber/internal/contract"
+import ( 
 	"rest-fiber/pkg/httpx"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,7 +14,7 @@ type postRouteImpl struct {
 	postHandler PostHandler
 }
 
-func NewPostRoute(params PostRouteParams) contract.ProtectedRoute {
+func NewPostRoute(params PostRouteParams) httpx.ProtectedRoute {
 	return &postRouteImpl{postHandler: params.PostHandler}
 }
 func (r *postRouteImpl) RegisterProtectedRoute(api fiber.Router) {
