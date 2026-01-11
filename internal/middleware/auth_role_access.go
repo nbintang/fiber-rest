@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func AuthRoleAccess(roles ...enums.EUserRoleType) fiber.Handler {
+func AuthAllowRoleAccess(roles ...enums.EUserRoleType) fiber.Handler {
 	roleSet := make(map[enums.EUserRoleType]struct{}, len(roles))
 	for _, r := range roles {
 		roleSet[r] = struct{}{}

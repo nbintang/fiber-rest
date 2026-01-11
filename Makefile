@@ -1,6 +1,6 @@
 migrate:
-	go run ./cmd/migrate/main.go
+	go run ./cmd/migrate
 run:
-	go run ./cmd/app/main.go
+	go run ./cmd/api/main.go
 seed:
-	go run ./cmd/seed/main.go
+	go run ./cmd/seed

@@ -1,7 +1,9 @@
 package post
 
-import ( 
+import (
+	"rest-fiber/internal/middleware"
 	"rest-fiber/pkg/httpx"
+	"rest-fiber/utils/enums"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -21,7 +23,7 @@ func (r *postRouteImpl) RegisterProtectedRoute(route fiber.Router) {
 	posts := route.Group("/posts")
 	posts.Get("/", r.postHandler.GetAllPosts)
 	posts.Get("/:id", r.postHandler.GetPostByID)
-	posts.Post("/", r.postHandler.CreatePost)
-	posts.Patch("/:id", r.postHandler.UpdatePostByID)
-	posts.Delete("/:id", r.postHandler.DeletePostByID)
+	posts.Post("/", middleware.AuthAllowRoleAccess(enums.Admin), r.postHandler.CreatePost)
+	posts.Patch("/:id", middleware.AuthAllowRoleAccess(enums.Admin), r.postHandler.UpdatePostByID)
+	posts.Delete("/:id", middleware.AuthAllowRoleAccess(enums.Admin), r.postHandler.DeletePostByID)
 }
