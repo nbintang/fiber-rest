@@ -3,7 +3,7 @@ package category
 import (
 	"context"
 	"errors"
-	"rest-fiber/pkg/helper"
+	"rest-fiber/pkg/slice"
 )
 
 type categoryServiceimpl struct {
@@ -20,7 +20,7 @@ func (s *categoryServiceimpl) FindAllCategories(ctx context.Context, page, limit
 		return nil, 0, err
 	}
 
-	categoriesResponse := helper.MapSlices[Category, CategoryResponseDTO](
+	categoriesResponse := slice.Map[Category, CategoryResponseDTO](
 		categories,
 		func(c Category) CategoryResponseDTO {
 			return CategoryResponseDTO{

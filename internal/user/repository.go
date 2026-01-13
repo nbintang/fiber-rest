@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 	"errors"
-	"rest-fiber/utils/enums"
+	"rest-fiber/internal/enums"
 
 	"gorm.io/gorm"
 )

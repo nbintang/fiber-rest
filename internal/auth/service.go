@@ -4,28 +4,32 @@ import (
 	"context"
 	"errors"
 	"rest-fiber/config"
-	"rest-fiber/internal/infra"
+	"rest-fiber/internal/enums"
+	"rest-fiber/internal/infra/email"
+	"rest-fiber/internal/infra/infraapp"
+	"rest-fiber/internal/infra/rediscache"
+	"rest-fiber/internal/infra/token"
 	"rest-fiber/internal/user"
-	"rest-fiber/pkg/helper"
-	"rest-fiber/utils/enums"
+	"rest-fiber/pkg/password"
+	"time"
 )
 
 type authServiceImpl struct {
 	userRepo     user.UserRepository
-	tokenService infra.TokenService
-	emailService infra.EmailService
-	redisService infra.RedisService
+	tokenService token.Service
+	emailService email.EmailService
+	redisService rediscache.Service
 	env          config.Env
-	logger       *infra.AppLogger
+	logger       *infraapp.AppLogger
 }
 
 func NewAuthService(
 	userRepo user.UserRepository,
-	tokenService infra.TokenService,
-	emailService infra.EmailService,
-	redisService infra.RedisService,
+	tokenService token.Service,
+	emailService email.EmailService,
+	redisService rediscache.Service,
 	env config.Env,
-	logger *infra.AppLogger,
+	logger *infraapp.AppLogger,
 ) AuthService {
 	return &authServiceImpl{userRepo, tokenService, emailService, redisService, env, logger}
 }
@@ -38,7 +42,7 @@ func (s *authServiceImpl) Register(ctx context.Context, dto *RegisterRequestDTO)
 	if exists {
 		return errors.New("User Already Exist")
 	}
-	hashed, err := helper.HashPassword(dto.Password)
+	hashed, err := password.Hash(dto.Password)
 	if err != nil {
 		return err
 	}
@@ -55,16 +59,18 @@ func (s *authServiceImpl) Register(ctx context.Context, dto *RegisterRequestDTO)
 	if err != nil {
 		return err
 	}
-	go func() {
-		if err := s.emailService.SendEmail(infra.EmailParams{
+	go func(emailAddr, token string) {
+		emailCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := s.emailService.SendEmail(emailCtx, email.Params{
 			Subject: "Verification",
 			Message: s.env.TargetURL + token,
-			Reciever: infra.EmailReciever{
-				Email: user.Email,
+			Reciever: email.Reciever{
+				Email: emailAddr,
 			}}); err != nil {
 			s.logger.Error(err)
 		}
-	}()
+	}(user.Email, token)
 	return nil
 }
 func (s *authServiceImpl) Login(ctx context.Context, dto *LoginRequestDTO) (TokensResponseDto, error) {
@@ -75,7 +81,7 @@ func (s *authServiceImpl) Login(ctx context.Context, dto *LoginRequestDTO) (Toke
 	if user == nil {
 		return TokensResponseDto{}, errors.New("User Not Found")
 	}
-	if err := helper.ComparePassword(dto.Password, user.Password); err != nil {
+	if err := password.Compare(dto.Password, user.Password); err != nil {
 		return TokensResponseDto{}, errors.New("Invalid Password")
 	}
 	if user.IsEmailVerified == false {
@@ -93,7 +99,7 @@ func (s *authServiceImpl) RefreshToken(ctx context.Context, refreshToken string)
 	if !ok || oldRT == "" || userID == "" {
 		return TokensResponseDto{}, errors.New("invalid token claims")
 	}
-	storedUserID, exists, err := s.redisService.GetAndDel(ctx, "refresh:"+oldRT)
+	storedUserID, exists, err := s.redisService.GetAndDel(ctx, keyRefresh+oldRT)
 	if err != nil {
 		return TokensResponseDto{}, err
 	}
@@ -103,8 +109,8 @@ func (s *authServiceImpl) RefreshToken(ctx context.Context, refreshToken string)
 		return TokensResponseDto{}, errors.New("token reuse detected")
 	}
 	s.blacklistAccessByRefreshJTI(ctx, oldRT)
-	s.redisService.Del(ctx, "rt_access:"+oldRT, "rt_access_exp:"+oldRT)
-	s.redisService.SRem(ctx, "user_tokens:"+userID, oldRT)
+	s.redisService.Del(ctx, keyRTAccess+oldRT, keyRTAccessExp+oldRT)
+	s.redisService.SRem(ctx, keyUserTokens+userID, oldRT)
 	user, err := s.userRepo.FindByIDWithRole(ctx, userID)
 	if err != nil {
 		return TokensResponseDto{}, err
@@ -154,10 +160,10 @@ func (s *authServiceImpl) Logout(ctx context.Context, refreshToken string) error
 	}
 	s.blacklistAccessByRefreshJTI(ctx, rtJTI)
 	s.redisService.Del(ctx,
-		"refresh:"+rtJTI,
-		"rt_access:"+rtJTI,
-		"rt_access_exp:"+rtJTI,
+		keyRefresh+rtJTI,
+		keyRTAccess+rtJTI,
+		keyRTAccessExp+rtJTI,
 	)
-	s.redisService.SRem(ctx, "user_tokens:"+userID, rtJTI)
+	s.redisService.SRem(ctx, keyUserTokens+userID, rtJTI)
 	return nil
 }

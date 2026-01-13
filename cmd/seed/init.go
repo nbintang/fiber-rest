@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"math/rand"
 	"rest-fiber/internal/category"
+	"rest-fiber/internal/enums"
 	"rest-fiber/internal/post"
 	"rest-fiber/internal/user"
-	"rest-fiber/pkg/helper"
-	"rest-fiber/utils/enums"
+	"rest-fiber/pkg/password"
 
 	"strings"
 
@@ -32,7 +32,7 @@ func InitSeeds(db *gorm.DB, opt Options) error {
 		"Technology", "Programming", "Lifestyle", "Backend", "DevOps",
 		"Database", "Security", "Testing",
 	}
-	hashed, err := helper.HashPassword("Password123")
+	hashed, err := password.Hash("Password123")
 	if err != nil {
 		return err
 	}

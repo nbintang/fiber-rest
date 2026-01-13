@@ -1,9 +1,8 @@
 package auth
 
 import (
-	"rest-fiber/pkg/httpx"
-	"rest-fiber/utils/enums"
-
+	"rest-fiber/internal/enums"
+	"rest-fiber/internal/http/router" 
 	"go.uber.org/fx"
 )
 
@@ -12,7 +11,7 @@ var Module = fx.Module(
 	fx.Provide(
 		NewAuthService,
 		NewAuthHandler,
-		httpx.ProvideRoute[AuthRouteParams, httpx.Route](
+		router.ProvideRoute[AuthRouteParams, router.Route](
 			NewAuthRoute,
 			enums.RoutePublic,
 		),

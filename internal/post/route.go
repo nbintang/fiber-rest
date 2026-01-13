@@ -1,29 +1,29 @@
 package post
 
 import (
-	"rest-fiber/internal/middleware"
-	"rest-fiber/pkg/httpx"
-	"rest-fiber/utils/enums"
+	"rest-fiber/internal/enums"
+	"rest-fiber/internal/http/middleware"
+	"rest-fiber/internal/http/router"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 type PostRouteParams struct {
-	httpx.RouteParams
+	router.RouteParams
 	PostHandler PostHandler
 }
 type postRouteImpl struct {
 	postHandler PostHandler
 }
 
-func NewPostRoute(params PostRouteParams) httpx.ProtectedRoute {
+func NewPostRoute(params PostRouteParams) router.ProtectedRoute {
 	return &postRouteImpl{postHandler: params.PostHandler}
 }
 func (r *postRouteImpl) RegisterProtectedRoute(route fiber.Router) {
 	posts := route.Group("/posts")
 	posts.Get("/", r.postHandler.GetAllPosts)
 	posts.Get("/:id", r.postHandler.GetPostByID)
-	posts.Post("/", middleware.AuthAllowRoleAccess(enums.Admin), r.postHandler.CreatePost)
-	posts.Patch("/:id", middleware.AuthAllowRoleAccess(enums.Admin), r.postHandler.UpdatePostByID)
-	posts.Delete("/:id", middleware.AuthAllowRoleAccess(enums.Admin), r.postHandler.DeletePostByID)
+	posts.Post("/", middleware.AllowRoleAccess(enums.Admin), r.postHandler.CreatePost)
+	posts.Patch("/:id", middleware.AllowRoleAccess(enums.Admin), r.postHandler.UpdatePostByID)
+	posts.Delete("/:id", middleware.AllowRoleAccess(enums.Admin), r.postHandler.DeletePostByID)
 }

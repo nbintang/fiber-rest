@@ -3,23 +3,23 @@ package main
 import (
 	"flag"
 	"rest-fiber/config"
-	"rest-fiber/internal/infra"
-	"rest-fiber/utils"
+	"rest-fiber/internal/infra/database"
+	"rest-fiber/pkg/env"
 	"strconv"
 
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	utils.LoadEnv()
-	dbLogger := infra.NewDBLogger()
+	env.Load()
+	dbLogger := database.NewLogger()
 
 	env, err := config.GetEnvs()
 	if err != nil {
 		logrus.Warnf("Seed failed: %v", err)
 	}
 
-	db, err := infra.GetDatabaseStandalone(env, dbLogger)
+	db, err := database.GetStandalone(env, dbLogger)
 	if err != nil {
 		logrus.Warnf("Seed failed: %v", err)
 	}

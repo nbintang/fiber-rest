@@ -2,7 +2,8 @@ package auth
 
 import (
 	"rest-fiber/config"
-	"rest-fiber/internal/infra"
+	"rest-fiber/internal/infra/infraapp"
+	"rest-fiber/internal/infra/validator"
 	"rest-fiber/pkg/httpx"
 	"time"
 
@@ -11,12 +12,12 @@ import (
 
 type authHandlerImpl struct {
 	authService AuthService
-	validate    infra.Validator
+	validate    validator.Service
 	env         config.Env
-	logger      *infra.AppLogger
+	logger      *infraapp.AppLogger
 }
 
-func NewAuthHandler(authService AuthService, validate infra.Validator, env config.Env, logger *infra.AppLogger) AuthHandler {
+func NewAuthHandler(authService AuthService, validate validator.Service, env config.Env, logger *infraapp.AppLogger) AuthHandler {
 	return &authHandlerImpl{authService, validate, env, logger}
 }
 

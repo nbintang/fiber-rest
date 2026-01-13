@@ -1,7 +1,7 @@
 package post
 
 import (
-	"rest-fiber/utils/enums"
+	"rest-fiber/internal/enums"
 
 	"gorm.io/gorm"
 )

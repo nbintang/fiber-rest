@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"rest-fiber/internal/category"
-	"rest-fiber/pkg/helper"
+	"rest-fiber/pkg/slice"
 )
 
 type postServiceImpl struct {
@@ -21,7 +21,7 @@ func (s *postServiceImpl) FindAllPosts(ctx context.Context, page, limit, offset 
 	if err != nil {
 		return nil, 0, err
 	}
-	postsResponses := helper.MapSlices[Post, PaginatedPostResponseDTO](
+	postsResponses := slice.Map[Post, PaginatedPostResponseDTO](
 		posts,
 		func(p Post) PaginatedPostResponseDTO {
 			return PaginatedPostResponseDTO{

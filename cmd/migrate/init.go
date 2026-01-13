@@ -4,7 +4,7 @@ import (
 	"context"
 	"rest-fiber/config"
 	"rest-fiber/internal/category"
-	"rest-fiber/internal/infra"
+	"rest-fiber/internal/infra/database"
 	"rest-fiber/internal/post"
 	"rest-fiber/internal/user"
 
@@ -12,12 +12,12 @@ import (
 )
 
 func InitMigrate(ctx context.Context) error {
-	dbLogger := infra.NewDBLogger()
+	dbLogger := database.NewLogger()
 	env, err := config.GetEnvs()
 	if err != nil {
 		return err
 	}
-	db, err := infra.GetDatabaseStandalone(env, dbLogger)
+	db, err := database.GetStandalone(env, dbLogger)
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"rest-fiber/internal/category"
-	"rest-fiber/utils/enums"
+	"rest-fiber/internal/enums"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,7 +23,7 @@ type Post struct {
 	Category   category.Category `gorm:"foreignKey:CategoryID;references:ID"`
 	CreatedAt  time.Time         `gorm:"column:created_at;autoCreateTime"`
 	UpdatedAt  time.Time         `gorm:"column:updated_at;autoUpdateTime"`
-	DeletedAt  *time.Time       `gorm:"index"` 
+	DeletedAt  *time.Time        `gorm:"index"`
 }
 
 func (p *Post) TableName() string {

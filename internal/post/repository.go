@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"rest-fiber/internal/category"
-	"rest-fiber/utils/enums"
+	"rest-fiber/internal/enums"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
