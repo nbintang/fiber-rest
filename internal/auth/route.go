@@ -1,36 +1,35 @@
 package auth
 
 import (
-	"rest-fiber/config" 
-	"rest-fiber/internal/infra"
-	"rest-fiber/internal/middleware"
-	"rest-fiber/pkg/httpx"
+	"rest-fiber/internal/http/router"
+	"rest-fiber/internal/infra/rediscache"
+	"time"
 
-	"github.com/gofiber/fiber/v2" 
+	"github.com/gofiber/fiber/v2"
 )
 
 type AuthRouteParams struct {
-	httpx.RouteParams
-	AuthHandler AuthHandler
-	Env         config.Env
+	router.RouteParams
+	AuthHandler  AuthHandler
+	RedisService rediscache.Service
 }
 
 type authRouteImpl struct {
-	authHandler AuthHandler
-	env         config.Env
+	authHandler  AuthHandler
+	redisService rediscache.Service
 }
 
-func NewAuthRoute(params AuthRouteParams) httpx.Route {
-	return &authRouteImpl{authHandler: params.AuthHandler, env: params.Env}
+func NewAuthRoute(params AuthRouteParams) router.Route {
+	return &authRouteImpl{authHandler: params.AuthHandler, redisService: params.RedisService}
 }
 func (r *authRouteImpl) RegisterRoute(api fiber.Router) {
 	auth := api.Group("/auth")
 
-	redisStarage := infra.GetRedisStorage(r.env)
-	storageParams := middleware.RateLimiterParams{MaxLimit: 3, Storage: redisStarage}
-	auth.Post("/register", middleware.AuthRateLimit(storageParams), r.authHandler.Register)
-	auth.Post("/verify", middleware.AuthRateLimit(storageParams), r.authHandler.VerifyEmail)
-	auth.Post("/login", middleware.AuthRateLimit(storageParams), r.authHandler.Login)
-	auth.Delete("/logout", middleware.AuthRateLimit(storageParams), r.authHandler.Logout)
-	auth.Post("/refresh-token", middleware.AuthRateLimit(storageParams), r.authHandler.RefreshToken)
+	redisStarage := r.redisService.GetStorage()
+	storageParams := rediscache.ThrottleParams{MaxLimit: 5, Storage: redisStarage, Expiration: 1 * time.Minute}
+	auth.Post("/register", rediscache.Throttle(storageParams), r.authHandler.Register)
+	auth.Post("/verify", rediscache.Throttle(storageParams), r.authHandler.VerifyEmail)
+	auth.Post("/login", rediscache.Throttle(storageParams), r.authHandler.Login)
+	auth.Delete("/logout", rediscache.Throttle(storageParams), r.authHandler.Logout)
+	auth.Post("/refresh-token", rediscache.Throttle(storageParams), r.authHandler.RefreshToken)
 }

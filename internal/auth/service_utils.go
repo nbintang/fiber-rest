@@ -2,8 +2,8 @@ package auth
 
 import (
 	"context"
-	"rest-fiber/internal/infra"
-	"rest-fiber/utils/enums"
+	"rest-fiber/internal/enums" 
+	"rest-fiber/internal/infra/token"
 	"strconv"
 	"time"
 
@@ -16,7 +16,7 @@ func (s *authServiceImpl) generateTokens(ctx context.Context, id string, email s
 	refreshTTL := 24 * time.Hour
 	accessJTI := uuid.NewString()
 	accessExpUnix := time.Now().Add(accessTTL).Unix()
-	accessToken, err := s.tokenService.GenerateToken(&infra.GenerateTokenParams{
+	accessToken, err := s.tokenService.GenerateToken(&token.GenerateTokenParams{
 		ID: id, Email: email, Role: enums.EUserRoleType(role), JTI: accessJTI,
 		Type: enums.TokenAccess}, s.env.JWTAccessSecret, accessTTL,
 	)
@@ -25,7 +25,7 @@ func (s *authServiceImpl) generateTokens(ctx context.Context, id string, email s
 		return TokensResponseDto{}, err
 	}
 	refreshJTI := uuid.NewString()
-	refreshToken, err := s.tokenService.GenerateToken(&infra.GenerateTokenParams{
+	refreshToken, err := s.tokenService.GenerateToken(&token.GenerateTokenParams{
 		ID: id, Email: email, Role: enums.EUserRoleType(role), JTI: refreshJTI,
 		Type: enums.TokenRefresh}, s.env.JWTRefreshSecret, refreshTTL,
 	)
@@ -33,22 +33,22 @@ func (s *authServiceImpl) generateTokens(ctx context.Context, id string, email s
 		return TokensResponseDto{}, err
 	}
 
-	if err := s.redisService.Set(ctx, "refresh:"+refreshJTI, id, refreshTTL); err != nil {
+	if err := s.redisService.Set(ctx, keyRTAccess+refreshJTI, id, refreshTTL); err != nil {
 		return TokensResponseDto{}, err
 	}
-	if err := s.redisService.Set(ctx, "rt_access:"+refreshJTI, accessJTI, refreshTTL); err != nil {
-		s.redisService.Del(ctx, "refresh:"+refreshJTI)
+	if err := s.redisService.Set(ctx, keyRTAccess+refreshJTI, accessJTI, refreshTTL); err != nil {
+		s.redisService.Del(ctx, keyRefresh+refreshJTI)
 		return TokensResponseDto{}, err
 	}
-	if err := s.redisService.Set(ctx, "rt_access_exp:"+refreshJTI, accessExpUnix, refreshTTL); err != nil {
-		s.redisService.Del(ctx, "refresh:"+refreshJTI, "rt_access:"+refreshJTI)
+	if err := s.redisService.Set(ctx, keyRTAccessExp+refreshJTI, accessExpUnix, refreshTTL); err != nil {
+		s.redisService.Del(ctx, keyRefresh+refreshJTI, keyRTAccess+refreshJTI)
 		return TokensResponseDto{}, err
 	}
-	if err := s.redisService.SAdd(ctx, "user_tokens:"+id, refreshJTI, refreshTTL); err != nil {
+	if err := s.redisService.SAdd(ctx, keyUserTokens+id, refreshJTI, refreshTTL); err != nil {
 		s.redisService.Del(ctx,
-			"refresh:"+refreshJTI,
-			"rt_access:"+refreshJTI,
-			"rt_access_exp:"+refreshJTI,
+			keyRefresh+refreshJTI,
+			keyRTAccess+refreshJTI,
+			keyRTAccessExp+refreshJTI,
 		)
 		return TokensResponseDto{}, err
 	}
@@ -56,7 +56,7 @@ func (s *authServiceImpl) generateTokens(ctx context.Context, id string, email s
 }
 
 func (s *authServiceImpl) generateVerificationToken(id string) (string, error) {
-	return s.tokenService.GenerateToken(&infra.GenerateTokenParams{
+	return s.tokenService.GenerateToken(&token.GenerateTokenParams{
 		ID: id,
 	},
 		s.env.JWTVerificationSecret,
@@ -65,7 +65,7 @@ func (s *authServiceImpl) generateVerificationToken(id string) (string, error) {
 }
 
 func (s *authServiceImpl) revokeAllUserTokens(ctx context.Context, userID string) error {
-	userTokensKey := "user_tokens:" + userID
+	userTokensKey := keyUserTokens + userID
 	rtJTIs, err := s.redisService.SMembers(ctx, userTokensKey)
 	if err != nil {
 		if err == redis.Nil {
@@ -76,9 +76,9 @@ func (s *authServiceImpl) revokeAllUserTokens(ctx context.Context, userID string
 	for _, rtJTI := range rtJTIs {
 		s.blacklistAccessByRefreshJTI(ctx, rtJTI)
 		s.redisService.Del(ctx,
-			"refresh:"+rtJTI,
-			"rt_access:"+rtJTI,
-			"rt_access_exp:"+rtJTI,
+			keyRefresh+rtJTI,
+			keyRTAccess+rtJTI,
+			keyRTAccessExp+rtJTI,
 		)
 	}
 	s.redisService.Del(ctx, userTokensKey)
@@ -87,7 +87,7 @@ func (s *authServiceImpl) revokeAllUserTokens(ctx context.Context, userID string
 }
 
 func (s *authServiceImpl) blacklistAccessByRefreshJTI(ctx context.Context, rtJTI string) error {
-	accessJTI, err := s.redisService.Get(ctx, "rt_access:"+rtJTI)
+	accessJTI, err := s.redisService.Get(ctx, keyRTAccess+rtJTI)
 	if err != nil {
 		if err != redis.Nil {
 			s.logger.Warnf("failed get rt_access for %s: %v", rtJTI, err)
@@ -98,7 +98,7 @@ func (s *authServiceImpl) blacklistAccessByRefreshJTI(ctx context.Context, rtJTI
 		return nil
 	}
 
-	expStr, err := s.redisService.Get(ctx, "rt_access_exp:"+rtJTI)
+	expStr, err := s.redisService.Get(ctx, keyRTAccessExp+rtJTI)
 	if err != nil {
 		if err != redis.Nil {
 			s.logger.Warnf("failed get rt_access_exp for %s: %v", rtJTI, err)
@@ -112,5 +112,5 @@ func (s *authServiceImpl) blacklistAccessByRefreshJTI(ctx context.Context, rtJTI
 		return nil
 	}
 
-	return s.redisService.Set(ctx, "blacklist_access:"+accessJTI, "1", ttl)
+	return s.redisService.Set(ctx, keyBLAccess+accessJTI, "1", ttl)
 }

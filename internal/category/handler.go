@@ -1,8 +1,9 @@
 package category
 
-import (
-	"rest-fiber/internal/infra"
+import ( 
+	"rest-fiber/internal/infra/validator"
 	"rest-fiber/pkg/httpx"
+	"rest-fiber/pkg/pagination"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -10,16 +11,16 @@ import (
 
 type categoryHandlerImpl struct {
 	categoryService CategoryService
-	validate        infra.Validator
+	validate        validator.Service
 }
 
-func NewCategoryHandler(categoryService CategoryService, validate infra.Validator) CategoryHandler {
+func NewCategoryHandler(categoryService CategoryService, validate validator.Service) CategoryHandler {
 	return &categoryHandlerImpl{categoryService, validate}
 }
 
 func (h *categoryHandlerImpl) GetAllCategories(c *fiber.Ctx) error {
 	ctx := c.UserContext()
-	var query httpx.PaginationQuery
+	var query pagination.Query
 	if err := c.QueryParser(&query); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
@@ -31,7 +32,7 @@ func (h *categoryHandlerImpl) GetAllCategories(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	meta := httpx.NewPaginationMeta(query.Page, query.Limit, total)
+	meta := pagination.NewPaginationMeta(query.Page, query.Limit, total)
 	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpPaginationResponse[[]CategoryResponseDTO](
 		fiber.StatusOK,
 		"Success",

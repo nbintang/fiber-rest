@@ -1,8 +1,8 @@
 package user
 
 import (
-	"rest-fiber/pkg/httpx"
-	"rest-fiber/utils/enums"
+	"rest-fiber/internal/enums"
+	"rest-fiber/internal/http/router" 
 
 	"go.uber.org/fx"
 )
@@ -13,7 +13,7 @@ var Module = fx.Module(
 		NewUserRepository,
 		NewUserService,
 		NewUserHandler,
-		httpx.ProvideRoute[UserRouteParams, httpx.ProtectedRoute](
+		router.ProvideRoute[UserRouteParams, router.ProtectedRoute](
 			NewUserRoute,
 			enums.RouteProtected,
 		),

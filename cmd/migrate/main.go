@@ -2,14 +2,14 @@ package main
 
 import (
 	"context"
-	"rest-fiber/utils"
+	"rest-fiber/pkg/env"
 
 	"github.com/sirupsen/logrus"
 )
 
 func main() {
 	ctx := context.Background()
-	utils.LoadEnv()
+	env.Load()
 	if err := InitMigrate(ctx); err != nil {
 		logrus.Warnf("Migration failed: %v", err)
 	}

@@ -1,9 +1,11 @@
 package user
 
 import (
-	"rest-fiber/internal/infra"
-	"rest-fiber/internal/middleware"
+	"rest-fiber/internal/identity"
+	"rest-fiber/internal/infra/infraapp"
+	"rest-fiber/internal/infra/validator"
 	"rest-fiber/pkg/httpx"
+	"rest-fiber/pkg/pagination"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -11,17 +13,17 @@ import (
 
 type userHandlerImpl struct {
 	userService UserService
-	logger      *infra.AppLogger
-	validator   infra.Validator
+	logger      *infraapp.AppLogger
+	validator   validator.Service
 }
 
-func NewUserHandler(userService UserService, logger *infra.AppLogger, validator infra.Validator) UserHandler {
+func NewUserHandler(userService UserService, logger *infraapp.AppLogger, validator validator.Service) UserHandler {
 	return &userHandlerImpl{userService, logger, validator}
 }
 
 func (h *userHandlerImpl) GetAllUsers(c *fiber.Ctx) error {
 	ctx := c.UserContext()
-	var query httpx.PaginationQuery
+	var query pagination.Query
 	if err := c.QueryParser(&query); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
@@ -33,7 +35,7 @@ func (h *userHandlerImpl) GetAllUsers(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	meta := httpx.NewPaginationMeta(query.Page, query.Limit, total)
+	meta := pagination.NewPaginationMeta(query.Page, query.Limit, total)
 	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpPaginationResponse[[]UserResponseDTO](
 		fiber.StatusOK,
 		"Success",
@@ -58,7 +60,7 @@ func (h *userHandlerImpl) GetUserByID(c *fiber.Ctx) error {
 }
 
 func (h *userHandlerImpl) GetCurrentUserProfile(c *fiber.Ctx) error {
-	currentUser, err := middleware.GetCurrentUser(c)
+	currentUser, err := identity.CurrentUser(c)
 	if err != nil {
 		return err
 	}
@@ -72,7 +74,7 @@ func (h *userHandlerImpl) GetCurrentUserProfile(c *fiber.Ctx) error {
 }
 
 func (h *userHandlerImpl) UpdateCurrentUser(c *fiber.Ctx) error {
-	currentUser, err := middleware.GetCurrentUser(c)
+	currentUser, err := identity.CurrentUser(c)
 	if err != nil {
 		return err
 	}

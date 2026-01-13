@@ -3,27 +3,28 @@ package user
 import (
 	"database/sql/driver"
 	"fmt"
+	"rest-fiber/internal/enums"
 	"rest-fiber/internal/post"
-	"rest-fiber/utils/enums"
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Role enums.EUserRoleType
 
 type User struct {
-	ID              uuid.UUID   `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	Name            string      `gorm:"type:varchar(255);not null;column:name"`
-	Email           string      `gorm:"type:varchar(255);unique;not null;column:email"`
-	AvatarURL       string      `gorm:"type:text;null;default:null;column:avatar_url"`
-	Password        string      `gorm:"type:varchar(255);not null;column:password"`
-	IsEmailVerified bool        `gorm:"type:boolean;not null;column:is_email_verified;default:false"`
-	Role            Role        `gorm:"type:role_type;not null;default:'MEMBER'"`
-	Posts           []post.Post `gorm:"foreignKey:UserID;references:ID"`
-	CreatedAt       time.Time   `gorm:"column:created_at;autoCreateTime"`
-	UpdatedAt       time.Time   `gorm:"column:updated_at;autoCreateTime;autoUpdateTime"`
-	DeletedAt       *time.Time  `gorm:"column:deleted_at;default:null"`
+	ID              uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	Name            string         `gorm:"type:varchar(255);not null;column:name"`
+	Email           string         `gorm:"type:varchar(255);unique;not null;column:email"`
+	AvatarURL       string         `gorm:"type:text;null;default:null;column:avatar_url"`
+	Password        string         `gorm:"type:varchar(255);not null;column:password"`
+	IsEmailVerified bool           `gorm:"type:boolean;not null;column:is_email_verified;default:false"`
+	Role            Role           `gorm:"type:role_type;not null;default:'MEMBER'"`
+	Posts           []post.Post    `gorm:"foreignKey:UserID;references:ID"`
+	CreatedAt       time.Time      `gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt       time.Time      `gorm:"column:updated_at;autoCreateTime;autoUpdateTime"`
+	DeletedAt       gorm.DeletedAt `gorm:"index"`
 }
 
 func (u *User) TableName() string {

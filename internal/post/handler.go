@@ -1,9 +1,10 @@
 package post
 
 import (
-	"rest-fiber/internal/infra"
-	"rest-fiber/internal/middleware"
+	"rest-fiber/internal/identity"
+	"rest-fiber/internal/infra/validator"
 	"rest-fiber/pkg/httpx"
+	"rest-fiber/pkg/pagination"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -11,16 +12,16 @@ import (
 
 type postHandlerImpl struct {
 	postService PostService
-	validate    infra.Validator
+	validate    validator.Service
 }
 
-func NewPostHandler(postService PostService, validate infra.Validator) PostHandler {
+func NewPostHandler(postService PostService, validate validator.Service) PostHandler {
 	return &postHandlerImpl{postService, validate}
 }
 
 func (h *postHandlerImpl) GetAllPosts(c *fiber.Ctx) error {
 	ctx := c.UserContext()
-	var query httpx.PaginationQuery
+	var query pagination.Query
 	if err := c.QueryParser(&query); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
@@ -32,7 +33,7 @@ func (h *postHandlerImpl) GetAllPosts(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	meta := httpx.NewPaginationMeta(query.Page, query.Limit, total)
+	meta := pagination.NewPaginationMeta(query.Page, query.Limit, total)
 	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpPaginationResponse[[]PaginatedPostResponseDTO](
 		fiber.StatusOK,
 		"Success",
@@ -55,7 +56,7 @@ func (h *postHandlerImpl) GetPostByID(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(httpx.NewHttpResponse(fiber.StatusOK, "Success", data))
 }
 func (h *postHandlerImpl) CreatePost(c *fiber.Ctx) error {
-	currentUser, err := middleware.GetCurrentUser(c)
+	currentUser, err := identity.CurrentUser(c)
 	if err != nil {
 		return err
 	}
@@ -81,7 +82,7 @@ func (h *postHandlerImpl) CreatePost(c *fiber.Ctx) error {
 	))
 }
 func (h *postHandlerImpl) UpdatePostByID(c *fiber.Ctx) error {
-	currentUser, err := middleware.GetCurrentUser(c)
+	currentUser, err := identity.CurrentUser(c)
 	if err != nil {
 		return err
 	}

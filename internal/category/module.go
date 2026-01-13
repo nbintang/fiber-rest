@@ -1,8 +1,8 @@
 package category
 
 import (
-	"rest-fiber/pkg/httpx"
-	"rest-fiber/utils/enums"
+	"rest-fiber/internal/enums"
+	"rest-fiber/internal/http/router" 
 
 	"go.uber.org/fx"
 )
@@ -14,7 +14,7 @@ var Module = fx.Module(
 		NewCategoryRepository,
 		NewCategoryService,
 		NewCategoryHandler,
-		httpx.ProvideRoute[CategoryRouteParams, httpx.ProtectedRoute](
+		router.ProvideRoute[CategoryRouteParams, router.ProtectedRoute](
 			NewCategoryRoutes,
 			enums.RouteProtected,
 		),
